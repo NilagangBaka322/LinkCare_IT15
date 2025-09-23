@@ -1,0 +1,242 @@
+﻿@model IEnumerable<LinkCare_IT15.Models.DoctorModel.ConsultationViewModel>
+
+
+@{
+    ViewBag.Title = "Consultations · Link Care";
+    Layout = "~/Views/Shared/_DoctorLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold">Consultations</h3>
+            <p class="text-muted">Manage patient consultations and medical history</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary">
+                <i class="bi bi-printer me-1"></i> Print Consultations
+            </a>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newConsultationModal">
+                <i class="bi bi-plus-circle me-1"></i> New Consultation
+            </button>
+        </div>
+    </div>
+
+    <!-- Card -->
+    <div class="lc-card p-4">
+        <h5 class="mb-3">Consultation Records</h5>
+        <p class="text-muted">Your recorded consultations with patients</p>
+
+        <!-- Search -->
+        <div class="d-flex flex-wrap mb-3">
+            <div class="me-auto mb-2" style="max-width: 350px;">
+                <input type="text" class="form-control" placeholder="Search by patient name or diagnosis..." />
+            </div>
+        </div>
+
+        <!-- Records List -->
+        <div class="list-group">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var consult in Model)
+                {
+                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">@consult.PatientName</div>
+                            <div class="small text-muted">
+                                Dr. @consult.DoctorName • @consult.Date.ToString("yyyy-MM-dd")
+                                • @consult.Diagnosis
+                            </div>
+                            <div class="small">
+                                <strong>BP:</strong> @consult.BloodPressure |
+                                <strong>HR:</strong> @consult.HeartRate |
+                                <strong>Temp:</strong> @consult.Temperature |
+                                <strong>Weight:</strong> @consult.Weight
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="text-center text-muted p-4">
+                    No consultations found.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- New Consultation Modal -->
+<div class="modal fade" id="newConsultationModal" tabindex="-1" aria-labelledby="newConsultationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">New Medical Consultation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- 👇 START FORM -->
+            <form asp-action="AddConsultation" method="post">
+                <div class="modal-body">
+                    <!-- your consultation + vitals input fields go here -->
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Consultation</button>
+                </div>
+            </form>
+            <!-- 👆 END FORM -->
+            <div class="modal-body">
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mb-3" id="consultationTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="consultation-tab" data-bs-toggle="tab" data-bs-target="#consultation"
+                                type="button" role="tab" aria-controls="consultation" aria-selected="true">
+                            Consultation
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="vitals-tab" data-bs-toggle="tab" data-bs-target="#vitals"
+                                type="button" role="tab" aria-controls="vitals" aria-selected="false">
+                            Vital Signs
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="consultationTabsContent">
+                    <!-- Consultation Tab -->
+                    <div class="tab-pane fade show active" id="consultation" role="tabpanel" aria-labelledby="consultation-tab">
+                        <!-- Patient Information -->
+                        <div class="d-flex mb-3 gap-2">
+                            <button class="btn btn-primary" id="btnSelectPatient">Select Patient</button>
+                            <button class="btn btn-outline-secondary" id="btnManualEntry">Manual Entry</button>
+                        </div>
+
+                        <!-- Select Patient Search -->
+                        <div id="selectPatientSection">
+                            <label class="form-label fw-bold">Search & Select Registered Patient</label>
+                            <input type="text" class="form-control mb-3" placeholder="Search for a registered patient..." />
+                        </div>
+
+                        <!-- Manual Entry Section (Hidden by Default) -->
+                        <div id="manualEntrySection" class="d-none">
+                            <h6 class="fw-bold">Enter Patient Information Manually</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">First Name *</label>
+                                    <input type="text" class="form-control" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Last Name *</label>
+                                    <input type="text" class="form-control" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Phone</label>
+                                    <input type="text" class="form-control" placeholder="+63-917-xxx-xxxx" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Gender</label>
+                                    <select class="form-select">
+                                        <option value="">Select gender</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Address</label>
+                                    <textarea class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <!-- Consultation Details -->
+                        <div class="mb-3">
+                            <label class="form-label">Chief Complaint *</label>
+                            <textarea class="form-control" placeholder="Patient's main concern or reason for visit..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Diagnosis *</label>
+                            <textarea class="form-control" placeholder="Clinical diagnosis and assessment..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Prescription</label>
+                            <textarea class="form-control" placeholder="Medications prescribed (one per line)..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Additional Notes</label>
+                            <textarea class="form-control" placeholder="Additional clinical notes, observations, follow-up instructions..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Vital Signs Tab -->
+                    <div class="tab-pane fade" id="vitals" role="tabpanel" aria-labelledby="vitals-tab">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Blood Pressure</label>
+                                <input type="text" class="form-control" placeholder="e.g. 120/80" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Heart Rate</label>
+                                <input type="text" class="form-control" placeholder="e.g. 72 bpm" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Temperature</label>
+                                <input type="text" class="form-control" placeholder="e.g. 98.6 °F" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Weight</label>
+                                <input type="text" class="form-control" placeholder="e.g. 150 lbs" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Save Consultation</button>
+            </div>
+        </div>
+    </div>
+    @section Scripts {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const btnManual = document.getElementById("btnManualEntry");
+                const btnSelect = document.getElementById("btnSelectPatient");
+                const manualSection = document.getElementById("manualEntrySection");
+                const selectSection = document.getElementById("selectPatientSection");
+
+                if (btnManual && btnSelect) {
+                    btnManual.addEventListener("click", function () {
+                        manualSection.classList.remove("d-none");
+                        selectSection.classList.add("d-none");
+                    });
+
+                    btnSelect.addEventListener("click", function () {
+                        manualSection.classList.add("d-none");
+                        selectSection.classList.remove("d-none");
+                    });
+                }
+            });
+        </script>
+    }
+
+
+</div>
+
+

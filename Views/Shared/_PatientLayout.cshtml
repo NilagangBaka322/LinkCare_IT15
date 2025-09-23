@@ -1,0 +1,207 @@
+﻿@* Views/Shared/_PatientLayout.cshtml *@
+@{
+    Layout = null;
+    var title = ViewBag.Title as string ?? "Link Care · Smart Clinic System";
+    var activePage = ViewData["ActivePage"] as string ?? "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title</title>
+
+    <!-- Bootstrap 5 + Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --lc-primary: #3b82f6; /* blue-500 */
+            --lc-primary-600: #2563eb;
+            --lc-bg: #f8fafc; /* slate-50 */
+            --lc-card: #ffffff;
+            --lc-border: #e5e7eb;
+            --lc-text: #0f172a;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background: var(--lc-bg);
+            color: var(--lc-text);
+        }
+
+        /* Layout */
+        .lc-shell {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
+
+        .lc-sidebar {
+            background: linear-gradient(180deg, var(--lc-primary) 0%, var(--lc-primary-600) 100%);
+            color: #fff;
+            padding: 1rem 0.75rem;
+        }
+
+        .lc-brand {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .5rem .75rem;
+            margin-bottom: .5rem;
+        }
+
+            .lc-brand .dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 999px;
+                background: #a7f3d0;
+            }
+
+        .lc-nav a {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: #e5e7eb;
+            text-decoration: none;
+            padding: .6rem .75rem;
+            border-radius: .75rem;
+            font-weight: 500;
+        }
+
+            .lc-nav a:hover, .lc-nav a.active {
+                background: rgba(255,255,255,.15);
+                color: #fff;
+            }
+
+        .lc-content {
+            padding: 1rem 1.5rem;
+        }
+
+        .lc-topbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: .5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Cards */
+        .lc-card {
+            background: var(--lc-card);
+            border: 1px solid var(--lc-border);
+            border-radius: 1rem;
+            box-shadow: 0 4px 20px rgba(2,6,23,.04);
+        }
+
+            .lc-card .lc-card-title {
+                font-weight: 700;
+                color: #334155;
+            }
+
+        .badge-soft {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+        }
+
+        .timeline li {
+            list-style: none;
+            display: flex;
+            gap: .75rem;
+            align-items: flex-start;
+            padding: .35rem 0;
+        }
+
+        .timeline .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #22c55e;
+            margin-top: .4rem;
+        }
+
+        .list-plain {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+            .list-plain li {
+                padding: .65rem .75rem;
+                border: 1px solid var(--lc-border);
+                border-radius: .75rem;
+                margin-bottom: .5rem;
+                background: #f9fafb;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+        .small-muted {
+            font-size: .9rem;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="lc-shell">
+        <!-- Sidebar -->
+        <aside class="lc-sidebar">
+            <div class="lc-brand">
+                <span class="dot"></span>
+                <div>
+                    <div class="fw-bold">Link Care</div>
+                    <div class="small" style="opacity:.85">Smart Clinic System</div>
+                </div>
+            </div>
+
+            <div class="px-2 text-uppercase small" style="opacity:.85">Patient</div>
+            <nav class="lc-nav mt-2">
+                <a class="@(activePage == "Dashboard" ? "active" : "")" href="/Patient/PatientDashboard">
+                    <i class="bi bi-speedometer2"></i> My Dashboard
+                </a>
+                <a class="@(activePage == "Appointments" ? "active" : "")" href="/Patient/PatientAppointments">
+                    <i class="bi bi-calendar-event"></i> My Appointments
+                </a>
+                <a class="@(activePage == "Records" ? "active" : "")" href="/Patient/PatientRecords">
+                    <i class="bi bi-journal-medical"></i> My Records
+                </a>
+                <a class="@(activePage == "Billing" ? "active" : "")" href="/Patient/PatientBilling">
+                    <i class="bi bi-receipt"></i> Billing
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <main class="lc-content">
+            <div class="lc-topbar">
+                <div class="dropdown">
+                    <button class="btn lc-card py-2 px-3 dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle me-2"></i> Patient User
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><a href="#" class="dropdown-item"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                        <li>
+                            <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="dropdown-item p-0">
+                                <button type="submit" class="btn btn-link text-dark w-100 text-start">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

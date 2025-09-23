@@ -1,0 +1,200 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+/* General Body Styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8f9fa;
+    color: #333;
+}
+
+/* Banner Section */
+.healthcare-banner {
+    background: linear-gradient(135deg, #007bff, #3399ff);
+    color: #fff;
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+    transition: transform 0.3s ease;
+}
+
+    .healthcare-banner:hover {
+        transform: scale(1.02);
+    }
+
+/* Quote Cards */
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+}
+
+    .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+.card-title {
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.card-text {
+    font-size: 0.95rem;
+    font-style: italic;
+}
+
+/* Heading Styling */
+h1.display-4 {
+    text-shadow: 1px 2px 4px rgba(0,0,0,0.1);
+}
+
+p.lead {
+    font-size: 1.15rem;
+}
+
+/* Call-to-Action Button */
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #3399ff);
+    border: none;
+    border-radius: 30px;
+    padding: 0.8rem 2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0056b3, #007bff);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(0,123,255,0.3);
+    }
+
+/* Banner Quote */
+.healthcare-banner h2 {
+    font-size: 1.8rem; /* larger than card quotes */
+    font-weight: 600;
+}
+
+.healthcare-banner p {
+    font-size: 1.1rem;
+    font-style: italic;
+    opacity: 0.9;
+}
+
+/* Quote Cards */
+.card .card-title {
+    font-size: 1.2rem; /* consistent across all cards */
+    font-weight: 600;
+    min-height: 60px; /* ensures equal space for titles */
+    display: flex;
+    align-items: center; /* vertical centering */
+    justify-content: center;
+    text-align: center;
+}
+
+.card .card-text {
+    font-size: 0.95rem;
+    font-style: italic;
+    color: #666;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+/* Ensure cards align well */
+.card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+/* NAVBAR */
+.custom-navbar {
+    background: linear-gradient(135deg, #007bff, #3399ff);
+    padding: 0.8rem 1.2rem;
+}
+
+    .custom-navbar .navbar-brand {
+        font-size: 1.4rem;
+        transition: transform 0.3s ease;
+    }
+
+        .custom-navbar .navbar-brand:hover {
+            transform: scale(1.05);
+        }
+
+    .custom-navbar .nav-link {
+        font-size: 1rem;
+        transition: color 0.3s ease, transform 0.2s ease;
+    }
+
+        .custom-navbar .nav-link:hover {
+            color: #ffe082 !important;
+            transform: translateY(-2px);
+        }
+
+        .custom-navbar .nav-link.active {
+            border-bottom: 2px solid #fff;
+        }
+
+/* FOOTER */
+.custom-footer {
+    background: linear-gradient(135deg, #007bff, #3399ff);
+    font-size: 0.9rem;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.15);
+}
+
+    .custom-footer p {
+        margin: 0;
+    }
+
+/* BODY */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.sidebar {
+    width: 220px;
+    min-height: 100vh;
+}
+
+    .sidebar .nav-link {
+        padding: 10px;
+    }
+
+        .sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+
+.main-content {
+    background: #fff;
+    min-height: 100vh;
+}
+
+.card {
+    border-radius: 12px;
+}

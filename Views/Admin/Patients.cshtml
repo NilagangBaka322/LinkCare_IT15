@@ -1,0 +1,98 @@
+﻿@model LinkCare_IT15.Models.AdminModel.AdminPatientsModel
+@{
+    ViewData["Title"] = "Patient Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Title -->
+    <h2 class="fw-bold mb-1">Patient Management</h2>
+    <p class="text-muted">View and manage patient information</p>
+
+    <!-- Search -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <input type="text" class="form-control" placeholder="🔍 Search patients by name, email, or phone number...">
+        </div>
+    </div>
+
+    <!-- Patient Information -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+            <span>Patient Information</span>
+            <span class="badge bg-secondary">@Model.TotalPatients Total Patients</span>
+        </div>
+
+        <div class="card-body p-0">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Age/Gender</th>
+                        <th>Contact</th>
+                        <th>Medical History</th>
+                        <th>Allergies</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Patients)
+                    {
+                        <tr>
+                            <!-- Patient Info -->
+                            <td>
+                                <div class="fw-bold">@p.PatientName</div>
+                                <small class="text-muted"><i class="bi bi-calendar"></i> @p.DateOfBirth.ToString("MMMM dd, yyyy")</small>
+                            </td>
+                            <td>@p.Age years old <br /> <span class="badge bg-light text-dark">@p.Gender</span></td>
+
+                            <!-- Contact -->
+                            <td>
+                                <div><i class="bi bi-telephone"></i> @p.Phone</div>
+                                <div><i class="bi bi-envelope"></i> @p.Email</div>
+                            </td>
+
+                            <!-- Medical History -->
+                            <td>
+                                @if (p.MedicalHistory != null && p.MedicalHistory.Any())
+                                {
+                                    foreach (var med in p.MedicalHistory)
+                                    {
+                                        <span class="badge bg-info text-dark me-1">@med</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">None</span>
+                                }
+                            </td>
+
+                            <!-- Allergies -->
+                            <td>
+                                @if (p.Allergies != null && p.Allergies.Any())
+                                {
+                                    foreach (var allergy in p.Allergies)
+                                    {
+                                        <span class="badge bg-danger me-1"><i class="bi bi-exclamation-triangle"></i> @allergy</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">None known</span>
+                                }
+                            </td>
+
+                            <!-- Actions -->
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View Details
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

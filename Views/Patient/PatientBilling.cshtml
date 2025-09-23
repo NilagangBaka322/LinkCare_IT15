@@ -1,0 +1,121 @@
+﻿@model IEnumerable<LinkCare_IT15.Models.PatientModel.BillingViewModel>
+@{
+    var summary = ViewBag.Summary as LinkCare_IT15.Models.PatientModel.BillingSummaryViewModel;
+    ViewBag.Title = "My Bills & Payments · Link Care";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="mb-3">
+        <h3 class="fw-bold">My Bills & Payments</h3>
+        <p class="text-muted">View your medical bills and payment history</p>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="lc-card p-3">
+                <h5>Total Paid</h5>
+                <h4 class="fw-bold text-success">₱@summary.TotalPaid</h4>
+                <small class="text-muted">Total amount paid</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="lc-card p-3">
+                <h5>Pending</h5>
+                <h4 class="fw-bold text-warning">₱@summary.Pending</h4>
+                <small class="text-muted">Awaiting payment</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="lc-card p-3">
+                <h5>Overdue</h5>
+                <h4 class="fw-bold text-danger">₱@summary.Overdue</h4>
+                <small class="text-muted">Past due bills</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="lc-card p-3">
+                <h5>Total Bills</h5>
+                <h4 class="fw-bold">@summary.TotalBills</h4>
+                <small class="text-muted">Your bills</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bills Table -->
+    <div class="lc-card p-4">
+        <h5 class="mb-3">My Bills</h5>
+        <p class="text-muted">Your medical bills and payment status</p>
+
+        <div class="d-flex flex-wrap mb-3">
+            <div class="me-auto mb-2">
+                <input type="text" class="form-control" placeholder="Search by service or date..." />
+            </div>
+            <div>
+                <select class="form-select">
+                    <option>All Status</option>
+                    <option>Paid</option>
+                    <option>Pending</option>
+                    <option>Overdue</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Patient</th>
+                        <th>Date</th>
+                        <th>Services</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var bill in Model)
+                        {
+                            <tr>
+                                <td>@bill.PatientName</td>
+                                <td>@bill.BillDate.ToString("yyyy-MM-dd")</td>
+                                <td>
+                                    @bill.Services[0] <br />
+                                    @if (bill.Services.Count > 1)
+                                    {
+                                        <small class="text-muted">+@((bill.Services.Count - 1)) more</small>
+                                    }
+                                </td>
+                                <td>₱@bill.TotalAmount</td>
+                                <td>
+                                    <span class="badge @(bill.Status == "Paid" ? "bg-success" : bill.Status == "Pending" ? "bg-warning" : "bg-danger")">
+                                        @bill.Status.ToLower()
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    @if (bill.PaymentDate.HasValue)
+                                    {
+                                        <span class="text-muted">Paid: @bill.PaymentDate.Value.ToString("yyyy-MM-dd")</span>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-outline-primary btn-sm">Pay Now</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">No bills found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

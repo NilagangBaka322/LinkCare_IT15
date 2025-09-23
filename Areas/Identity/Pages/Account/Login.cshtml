@@ -1,0 +1,120 @@
+﻿@page
+@model LoginModel
+@inject IConfiguration configuration
+@{
+    var sitekey = configuration["ReCaptchaSettings:SiteKey"];
+    ViewData["Title"] = "Login";
+}
+
+<section class="vh-100">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="card shadow-2-strong" style="border-radius: 1rem;">
+                    <div class="card-body p-5 text-center">
+
+                        <img src="~/lib/assets/LinkcareLogo.jpg" alt="Link Care Logo" style="height: 75px;" class="mb-4" />
+                        <h3 class="mb-3">Welcome to Link Care</h3>
+                        <p class="text-muted mb-5">Smart Clinic Management System</p>
+
+                        <form id="account" method="post">
+                            @if (!ModelState.IsValid)
+                            {
+                                <div class="alert alert-danger">
+                                    @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <p>@error.ErrorMessage</p>
+                                    }
+                                </div>
+                            }
+
+                            <div class="form-outline mb-4 text-start">
+                                <input asp-for="Input.Email" class="form-control form-control-lg" placeholder="Email" autocomplete="username" />
+                                <label asp-for="Input.Email" class="form-label"></label>
+                                <span asp-validation-for="Input.Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-outline mb-4 text-start">
+                                <input asp-for="Input.Password" type="password" class="form-control form-control-lg" placeholder="Password" autocomplete="current-password" />
+                                <label asp-for="Input.Password" class="form-label"></label>
+                                <span asp-validation-for="Input.Password" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-check d-flex justify-content-start mb-4">
+                                <input asp-for="Input.RememberMe" class="form-check-input" />
+                                <label asp-for="Input.RememberMe" class="form-check-label"></label>
+                            </div>
+
+                            <input type="hidden" asp-for="RecaptchaToken" id="RecaptchaToken" />
+
+                            <button id="loginBtn" class="btn btn-primary btn-lg btn-block w-100" type="submit">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+                            </button>
+                        </form>
+
+                        @if (Model.RemainingAttempts > 0)
+                        {
+                            <p class="text-warning mt-3">⚠️ Attempts remaining: @Model.RemainingAttempts</p>
+                        }
+
+                        @if (Model.CooldownRemaining.HasValue && Model.CooldownRemaining > 0)
+                        {
+                            <div class="alert alert-danger mt-3">
+                                Too many failed attempts. Please wait
+                                <span id="cooldownTimer">@Model.CooldownRemaining</span> before trying again.
+                            </div>
+                            <script>
+                                document.addEventListener("DOMContentLoaded", function () {
+                                    var cooldown = @Model.CooldownRemaining;
+                                    var loginBtn = document.getElementById("loginBtn");
+                                    loginBtn.disabled = true;
+
+                                    function updateTimer() {
+                                        if (cooldown > 0) {
+                                            document.getElementById("cooldownTimer").innerText = cooldown + "s";
+                                            cooldown--;
+                                            setTimeout(updateTimer, 1000);
+                                        } else {
+                                            loginBtn.disabled = false;
+                                            location.reload();
+                                        }
+                                    }
+                                    updateTimer();
+                                });
+                            </script>
+                        }
+
+                        <hr class="my-4">
+
+                        <div class="text-center">
+                            <p><a asp-page="./ForgotPassword">Forgot your password?</a></p>
+                            <p>Don't have an account? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Sign up here</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://www.google.com/recaptcha/api.js?render=@sitekey"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('account');
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                grecaptcha.ready(function () {
+                    grecaptcha.execute('@sitekey', { action: 'login' }).then(function (token) {
+                        document.getElementById('RecaptchaToken').value = token;
+                        form.submit();
+                    }).catch(function (error) {
+                        console.error('reCAPTCHA error:', error);
+                        form.submit(); // fallback
+                    });
+                });
+            });
+        });
+    </script>
+    <partial name="_ValidationScriptsPartial" />
+}

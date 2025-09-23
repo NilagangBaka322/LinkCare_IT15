@@ -1,0 +1,92 @@
+﻿
+@model LinkCare_IT15.Models.PatientModel.PatientDashboardModel
+
+
+
+@{
+    ViewBag.Title = "Patient Dashboard · Link Care";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+}
+
+@if (User.IsInRole("Patient"))
+{
+    <a asp-controller="Patient" asp-action="Index">Patient Dashboard</a>
+}
+
+<div class="container-fluid">
+    <div class="mb-2">
+        <h4 class="fw-bold">Welcome Back, Patient User</h4>
+        <div class="text-muted small">Here's your health overview</div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-lg-4">
+            <div class="lc-card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="lc-card-title">Next Appointment</div>
+                    <i class="bi bi-calendar3"></i>
+                </div>
+                <div class="fs-6 fw-bold">@Model.NextAppointment.Start.ToString("MMM dd")</div>
+                <div class="small-muted">@Model.NextAppointment.Start.ToString("h:mm tt") with @Model.NextAppointment.Doctor</div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="lc-card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="lc-card-title">Medical Records</div>
+                    <i class="bi bi-clipboard2-pulse"></i>
+                </div>
+                <div class="fs-4 fw-bold">@Model.TotalConsultations</div>
+                <div class="small-muted">Total consultations</div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="lc-card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="lc-card-title">Outstanding Bills</div>
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <div class="fs-4 fw-bold">₱@String.Format("{0:n0}", Model.OutstandingBills)</div>
+                <div class="small-muted">@Model.PendingPayments pending payment</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <div class="col-12 col-lg-8">
+            <div class="lc-card p-3">
+                <div class="lc-card-title mb-2"><i class="bi bi-clock-history me-2"></i>Upcoming Appointments</div>
+                <ul class="list-plain">
+                    @foreach (var appt in Model.UpcomingAppointments)
+                    {
+                        <li>
+                            <div>
+                                <div class="fw-semibold">@appt.Title</div>
+                                <div class="small-muted"><i class="bi bi-calendar2 me-1"></i>@appt.Start.ToString("MMM dd, yyyy · h:mm tt")</div>
+                            </div>
+                            <span class="badge rounded-pill badge-soft">Scheduled</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="lc-card p-3 h-100">
+                <div class="lc-card-title mb-2"><i class="bi bi-activity me-2"></i>Recent Activity</div>
+                <ul class="timeline ps-0">
+                    @foreach (var a in Model.RecentActivity)
+                    {
+                        <li>
+                            <span class="dot"></span>
+                            <div>
+                                <div class="fw-semibold">@a.Label</div>
+                                <div class="small-muted">@a.User · @((int)a.Ago.TotalHours) hours ago</div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

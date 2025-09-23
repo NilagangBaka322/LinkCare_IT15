@@ -1,0 +1,53 @@
+﻿/* Sidebar */
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background: #2563eb;
+    color: white;
+    padding: 1rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+    .sidebar .logo {
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+    }
+
+    .sidebar .menu {
+        list-style: none;
+        padding: 0;
+    }
+
+        .sidebar .menu li {
+            margin: 1rem 0;
+        }
+
+        .sidebar .menu a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+            .sidebar .menu a.active,
+            .sidebar .menu a:hover {
+                background: #1e40af;
+            }
+
+/* Main Content */
+.main-content {
+    margin-left: 220px;
+    background: #f9fafb;
+    min-height: 100vh;
+}
+
+/* Dashboard Cards */
+.card {
+    border-radius: 12px;
+    background: #fff;
+}

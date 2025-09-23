@@ -1,0 +1,74 @@
+﻿@*@model LinkCare_IT15.Models.Consultation
+
+@{
+    ViewData["Title"] = "New Consultation";
+}
+
+<h2>New Consultation</h2>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="FirstName"></label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="LastName"></label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Phone"></label>
+        <input asp-for="Phone" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="DateOfBirth"></label>
+        <input asp-for="DateOfBirth" type="date" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Gender"></label>
+        <select asp-for="Gender" class="form-control">
+            <option value="">Select gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Address"></label>
+        <textarea asp-for="Address" class="form-control"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ChiefComplaint"></label>
+        <textarea asp-for="ChiefComplaint" class="form-control"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Diagnosis"></label>
+        <textarea asp-for="Diagnosis" class="form-control"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Prescription"></label>
+        <textarea asp-for="Prescription" class="form-control"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="AdditionalNotes"></label>
+        <textarea asp-for="AdditionalNotes" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Consultation</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+*@

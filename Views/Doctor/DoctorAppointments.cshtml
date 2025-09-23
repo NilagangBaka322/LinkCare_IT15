@@ -1,0 +1,181 @@
+﻿@model LinkCare_IT15.Models.DoctorModel.DoctorAppointmentsModel
+
+@{
+    ViewBag.Title = "My Schedule · Link Care";
+    Layout = "~/Views/Shared/_DoctorLayout.cshtml";
+}
+
+<!-- FullCalendar CSS/JS (v6+) -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+<style>
+    #calendar {
+        min-height: 400px;
+        background: #fff;
+        z-index: 1;
+    }
+
+    .fc {
+        z-index: 2;
+        position: relative;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="mb-3">
+        <h3 class="fw-bold">My Schedule</h3>
+        <p class="text-muted">Manage your appointments and calendar view</p>
+    </div>
+
+    <div class="lc-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="bi bi-calendar2 me-2"></i>Doctor's Schedule</h5>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newAppointmentModal">
+                + New Appointment
+            </button>
+        </div>
+        <p class="text-muted">Manage your appointments and calendar</p>
+
+        <div class="row">
+            <!-- Calendar View -->
+            <div class="col-md-6 border-end">
+                <h6 class="fw-bold mb-2">Calendar View</h6>
+                <div class="p-3 border rounded bg-light">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+
+            <!-- Today's Schedule -->
+            <div class="col-md-6">
+                <h6 class="fw-bold mb-2">Today's Schedule</h6>
+                <p class="small text-muted">@Model.Appointments.Count apts</p>
+                <div class="list-group">
+                    @foreach (var appt in Model.Appointments.OrderBy(a => a.AppointmentDate))
+                    {
+                        var badgeClass = appt.Status.ToLower() switch
+                        {
+                            "completed" => "bg-success-subtle text-success",
+                            "cancelled" => "bg-danger-subtle text-danger",
+                            _ => "bg-primary-subtle text-primary"
+                        };
+                        <div class="list-group-item d-flex justify-content-between align-items-start mb-2 rounded shadow-sm">
+                            <div>
+                                <div class="fw-semibold text-primary">
+                                    <i class="bi bi-clock me-1"></i>@appt.AppointmentDate.ToString("HH:mm")
+                                </div>
+                                <div>@appt.PatientName</div>
+                                <small class="text-muted">@appt.Title</small>
+                            </div>
+                            <span class="badge rounded-pill @badgeClass align-self-center">
+                                @appt.Status.ToLower()
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Appointment Modal -->
+    <div class="modal fade" id="newAppointmentModal" tabindex="-1" aria-labelledby="newAppointmentLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="newAppointmentForm" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newAppointmentLabel">New Appointment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="patientName" class="form-label">Patient Name</label>
+                        <input type="text" class="form-control" id="patientName" name="PatientName" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="Title" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">Start Date & Time</label>
+                        <input type="datetime-local" class="form-control" id="startDate" name="StartDate" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">End Date & Time</label>
+                        <input type="datetime-local" class="form-control" id="endDate" name="EndDate" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Create Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    var calendar;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+        if (!calendarEl) {
+            console.error('Calendar element not found!');
+            return;
+        }
+
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            selectable: true,
+            editable: true,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: [
+                // Map your existing appointments here if needed
+            ],
+            select: function (info) {
+                alert('Selected: ' + info.startStr + ' to ' + info.endStr);
+            },
+            eventClick: function (info) {
+                alert('Clicked on: ' + info.event.title);
+            }
+        });
+
+        calendar.render();
+    });
+
+    // Handle new appointment form submission
+    document.getElementById('newAppointmentForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        var patientName = document.getElementById('patientName').value;
+        var title = document.getElementById('title').value;
+        var startDate = document.getElementById('startDate').value;
+        var endDate = document.getElementById('endDate').value;
+
+        fetch('/Doctor/CreateAppointment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ PatientName: patientName, Title: title, StartDate: startDate, EndDate: endDate })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Add to FullCalendar
+            calendar.addEvent({
+                id: data.id,
+                title: `${data.title}: ${data.patientName}`,
+                start: data.startDate,
+                end: data.endDate
+            });
+
+            // Close modal and reset form
+            var modal = bootstrap.Modal.getInstance(document.getElementById('newAppointmentModal'));
+            modal.hide();
+            e.target.reset();
+        })
+        .catch(error => {
+            alert('Error creating appointment.');
+            console.error(error);
+        });
+    });
+</script>

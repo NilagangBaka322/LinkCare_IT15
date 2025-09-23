@@ -1,0 +1,62 @@
+﻿@model IEnumerable<LinkCare_IT15.Models.AdminModel.AdminConsultationViewModel>
+
+@{
+    ViewBag.Title = "Consultations · Link Care";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold">Medical Records</h3>
+            <p class="text-muted">Manage patient consultations and medical history</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary">
+                <i class="bi bi-printer me-1"></i> Print Records
+            </a>
+            <a class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> New Consultation
+            </a>
+        </div>
+    </div>
+
+    <!-- Card -->
+    <div class="lc-card p-4">
+        <h5 class="mb-3">Medical Records</h5>
+        <p class="text-muted">View and manage patient consultations and medical history</p>
+
+        <!-- Search -->
+        <div class="d-flex flex-wrap mb-3">
+            <div class="me-auto mb-2" style="max-width: 350px;">
+                <input type="text" class="form-control" placeholder="Search by patient name or diagnosis..." />
+            </div>
+        </div>
+
+        <!-- Records List -->
+        <div class="list-group">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var record in Model)
+                {
+                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">@record.PatientName</div>
+                            <div class="small text-muted">
+                                @record.RecordCount record(s) • Last visit: @record.LastVisit.ToString("yyyy-MM-dd")
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="text-center text-muted p-4">
+                    No consultations found.
+                </div>
+            }
+        </div>
+    </div>
+</div>

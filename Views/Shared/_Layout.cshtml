@@ -1,0 +1,107 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LinkCare_IT15</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/LinkCare_IT15.styles.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- HEADER / NAVBAR -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm fixed-top">
+            <div class="container-fluid">
+                <!-- Brand -->
+                <a class="navbar-brand fw-bold text-primary" href="@Url.Action("Index", "Home")">Link Care</a>
+
+                <!-- Navbar Toggler -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Navbar Content -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <!-- LEFT aligned links -->
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Privacy", "Home")">Privacy</a>
+                        </li>
+                    </ul>
+
+                    <partial name="_LoginPartial" />
+
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        @* Show dashboard based on role *@
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-gray" asp-controller="Admin" asp-action="AdminDashboard">Dashboard</a>
+                                </li>
+                            }
+                            else if (User.IsInRole("Doctor"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-gray" asp-controller="Doctor" asp-action="DoctorDashboard">Dashboard</a>
+                                </li>
+                            }
+                            else if (User.IsInRole("Patient"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-gray" asp-controller="Patient" asp-action="PatientDashboard">Dashboard</a>
+                                </li>
+                            }
+                        }
+                    </ul>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- SINGLE MAIN CONTENT SECTION (Fixed) -->
+    <main role="main" class="container" style="padding-top: 100px; padding-bottom: 20px;">
+        @RenderBody()
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-light text-dark py-4 mt-5 border-top">
+        <div class="container">
+            <div class="row align-items-center">
+
+                <!-- Left Side: Brand -->
+                <div class="col-12 col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <h5 class="fw-bold text-primary mb-1">Link Care</h5>
+                    <p class="text-muted mb-0">Your trusted partner in health and wellness.</p>
+                </div>
+
+                <!-- Right Side: Links -->
+                <div class="col-12 col-md-6 text-center text-md-end">
+                    <a href="@Url.Action("Index", "Home")" class="text-decoration-none text-dark me-3 d-block d-md-inline">Home</a>
+                    <a href="@Url.Action("Privacy", "Home")" class="text-decoration-none text-dark d-block d-md-inline">Privacy</a>
+                </div>
+            </div>
+
+            <!-- Bottom Text -->
+            <div class="text-center mt-3 small text-muted">
+                &copy; @DateTime.Now.Year Link Care. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

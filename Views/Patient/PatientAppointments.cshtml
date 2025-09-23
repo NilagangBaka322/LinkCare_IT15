@@ -1,0 +1,77 @@
+﻿@model IEnumerable<LinkCare_IT15.Models.PatientModel.PatientAppointmentsModel>
+
+@{
+    ViewBag.Title = "My Appointments · Link Care";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="mb-3">
+        <h3 class="fw-bold">My Appointments</h3>
+        <p class="text-muted">View your scheduled appointments and medical visits</p>
+    </div>
+
+    <div class="lc-card p-4">
+        <h5 class="mb-3">My Appointment Schedule</h5>
+        <p class="text-muted">Your upcoming and past appointments</p>
+
+        <!-- Search + Filter -->
+        <div class="d-flex flex-wrap mb-3">
+            <div class="me-auto mb-2">
+                <input type="text" class="form-control" placeholder="Search by doctor name or appointment type..." />
+            </div>
+            <div>
+                <select class="form-select">
+                    <option>All Status</option>
+                    <option>Scheduled</option>
+                    <option>Completed</option>
+                    <option>Cancelled</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Patient</th>
+                        <th>Doctor</th>
+                        <th>Date & Time</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var appt in Model)
+                        {
+                            <tr>
+                                <td>@appt.PatientName</td>
+                                <td>@appt.DoctorName</td>
+                                <td>@appt.Start.ToString("yyyy-MM-dd hh:mm tt")</td>
+                                <td>@appt.Type</td>
+                                <td>
+                                    <span class="badge bg-primary">@appt.Status</span>
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-outline-danger btn-sm">Cancel</button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">
+                                No appointments found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

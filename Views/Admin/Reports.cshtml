@@ -1,0 +1,59 @@
+﻿@{
+    ViewData["Title"] = "Reports & Analytics";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <h2 class="fw-bold mb-1">Reports & Analytics</h2>
+    <p class="text-muted">View system analytics and performance reports</p>
+
+    <!-- Report Selector -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get">
+                <label class="fw-bold me-2">Select Report:</label>
+                <select class="form-select w-auto d-inline" onchange="showReport(this.value)">
+                    <option value="overview">📊 Overview Report</option>
+                    <option value="revenue">💰 Revenue Analysis</option>
+                    <option value="patient">🧑‍⚕️ Patient Analytics</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Display -->
+    <div id="overviewReport" class="card shadow-sm mb-4">
+        <div class="card-header fw-bold">📊 Overview Report</div>
+        <div class="card-body">
+            @Html.Partial("_OverviewReport")
+        </div>
+    </div>
+
+    <div id="revenueReport" class="card shadow-sm mb-4 d-none">
+        <div class="card-header fw-bold">💰 Revenue Analysis</div>
+        <div class="card-body">
+            @Html.Partial("_RevenueReport")
+        </div>
+    </div>
+
+    <div id="patientReport" class="card shadow-sm mb-4 d-none">
+        <div class="card-header fw-bold">🧑‍⚕️ Patient Analytics</div>
+        <div class="card-body">
+            @Html.Partial("_PatientReport")
+        </div>
+    </div>
+</div>
+
+<script>
+    function showReport(type) {
+        document.getElementById("overviewReport").classList.add("d-none");
+        document.getElementById("revenueReport").classList.add("d-none");
+        document.getElementById("patientReport").classList.add("d-none");
+
+        if (type === "overview") document.getElementById("overviewReport").classList.remove("d-none");
+        if (type === "revenue") document.getElementById("revenueReport").classList.remove("d-none");
+        if (type === "patient") document.getElementById("patientReport").classList.remove("d-none");
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

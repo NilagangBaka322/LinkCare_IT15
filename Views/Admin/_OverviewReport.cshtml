@@ -1,0 +1,81 @@
+﻿@model LinkCare_IT15.Models.AdminModel.ReportsViewModel
+
+<div class="card p-3 shadow-sm mb-4">
+    <h4>📊 System Overview</h4>
+    <p>Summary of performance and key metrics.</p>
+
+    <div class="row">
+        <!-- Line Chart -->
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm p-3">
+                <h6 class="fw-bold">Monthly Activity</h6>
+                <canvas id="overviewLineChart" style="height:300px;"></canvas>
+            </div>
+        </div>
+
+        <!-- Doughnut Chart -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm p-3">
+                <h6 class="fw-bold">Patient Categories</h6>
+                <canvas id="overviewDoughnutChart" style="height:300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Line Chart - Monthly Activity
+        new Chart(document.getElementById('overviewLineChart'), {
+            type: 'line',
+            data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                datasets: [{
+                    label: "Appointments",
+                    data: [50, 75, 60, 90, 120, 100],
+                    borderColor: "rgba(54, 162, 235, 1)",
+                    backgroundColor: "rgba(54, 162, 235, 0.2)",
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: "Consultations",
+                    data: [30, 40, 35, 60, 70, 80],
+                    borderColor: "rgba(255, 99, 132, 1)",
+                    backgroundColor: "rgba(255, 99, 132, 0.2)",
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Doughnut Chart - Patient Categories
+        new Chart(document.getElementById('overviewDoughnutChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ["Adults", "Children", "Seniors"],
+                datasets: [{
+                    data: [60, 25, 15],
+                    backgroundColor: [
+                        "#36A2EB",
+                        "#FFCE56",
+                        "#FF6384"
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: "bottom" }
+                }
+            }
+        });
+    });
+</script>

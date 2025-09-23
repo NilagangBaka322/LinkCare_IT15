@@ -1,0 +1,89 @@
+﻿@model LinkCare_IT15.Models.DoctorModel.DoctorDashboardModel
+
+@{
+    ViewBag.Title = "Doctor Dashboard · Link Care";
+    Layout = "~/Views/Shared/_DoctorLayout.cshtml";
+}
+
+@if (User.IsInRole("Doctor"))
+{
+    <a asp-controller="Doctor" asp-action="DoctorDashboard">Doctor Dashboard</a>
+}
+
+<div class="container-fluid">
+    <div class="mb-2">
+        <h4 class="fw-bold">Welcome Back, Dr. @Model.DoctorName</h4>
+        <div class="text-muted small">Here’s an overview of your clinic today</div>
+    </div>
+
+    <!-- Top 3 cards -->
+    <div class="row g-3">
+        <div class="col-12 col-lg-4">
+            <div class="lc-card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="lc-card-title">Today’s Appointments</div>
+                    <i class="bi bi-calendar3"></i>
+                </div>
+                <div class="fs-4 fw-bold">@Model.TodayAppointments</div>
+                <div class="small-muted">Scheduled for today</div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="lc-card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="lc-card-title">Pending Consultations</div>
+                    <i class="bi bi-clipboard2-pulse"></i>
+                </div>
+                <div class="fs-4 fw-bold">@Model.PendingConsultations</div>
+                <div class="small-muted">Awaiting consultation</div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="lc-card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="lc-card-title">Patients Under Care</div>
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="fs-4 fw-bold">@Model.TotalPatients</div>
+                <div class="small-muted">Active patients assigned</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom row -->
+    <div class="row g-3 mt-1">
+        <div class="col-12 col-lg-8">
+            <div class="lc-card p-3">
+                <div class="lc-card-title mb-2">
+                    <i class="bi bi-clock-history me-2"></i> Upcoming Appointments
+                </div>
+                <ul class="list-plain">
+                    @foreach (var appt in Model.UpcomingAppointments)
+                    {
+                       
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="lc-card p-3 h-100">
+                <div class="lc-card-title mb-2">
+                    <i class="bi bi-activity me-2"></i> Recent Activity
+                </div>
+                <ul class="timeline ps-0">
+                    @foreach (var a in Model.RecentActivity)
+                    {
+                        <li>
+                            <span class="dot"></span>
+                            <div>
+                                <div class="fw-semibold">@a.Label</div>
+                                <div class="small-muted">@a.User · @((int)a.Ago.TotalHours) hours ago</div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

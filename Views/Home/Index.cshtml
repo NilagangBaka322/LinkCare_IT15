@@ -1,0 +1,53 @@
+﻿@{
+    ViewBag.Title = "Home - Link Care";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // keep using your main layout
+}
+
+<div class="container text-center mt-5">
+    <!-- Welcome Section -->
+    <h1 class="display-4 text-primary fw-bold">Welcome to Link Care</h1>
+    <p class="lead text-muted">Your trusted partner in health and wellness</p>
+
+    <!-- Healthcare Banner -->
+    <div class="mt-4 p-4 rounded shadow-sm" style="background: linear-gradient(135deg, #007bff, #3399ff); color: white;">
+        <h2 class="mb-3">"Health is not valued till sickness comes."</h2>
+        <p class="fs-5">– Thomas Fuller</p>
+    </div>
+
+    <!-- Quotes Section -->
+    <div class="row mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">"The greatest wealth is health."</h5>
+                    <p class="card-text text-muted">– Virgil</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">"Caring for others is caring for yourself."</h5>
+                    <p class="card-text text-muted">– Anonymous</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow border-0 rounded-3">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">"A fit body, a calm mind, and a house full of love."</h5>
+                    <p class="card-text text-muted">– Naval Ravikant</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="mt-5">
+        <a class="btn btn-primary btn-lg px-4 shadow" href="@Url.Action("Register", "Account")">
+            Get Started
+        </a>
+    </div>
+</div>

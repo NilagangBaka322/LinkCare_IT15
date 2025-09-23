@@ -1,0 +1,97 @@
+﻿@model IEnumerable<LinkCare_IT15.Models.DoctorModel.ConsultationViewModel>
+
+@{
+    ViewBag.Title = "Medical Records · Link Care";
+    Layout = "~/Views/Shared/_DoctorLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="mb-3">
+        <h3 class="fw-bold">Medical Records</h3>
+        <p class="text-muted">Manage patient consultations and medical history</p>
+    </div>
+
+    <div class="lc-card p-4">
+        <h5 class="mb-3">Medical Records</h5>
+        <p class="text-muted">View and manage patient consultations and medical history</p>
+
+        <!-- Search + Filter -->
+        <div class="d-flex flex-wrap mb-3">
+            <div class="me-auto mb-2">
+                <input type="text" class="form-control" placeholder="Search by patient name or diagnosis..." />
+            </div>
+            <div>
+                <select class="form-select">
+                    <option>All Patients</option>
+                    <option>Patient User</option>
+                    <option>Sarah Smith</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Records -->
+        @if (Model != null && Model.Any())
+        {
+            foreach (var record in Model)
+            {
+                <div class="card mb-3 border">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="fw-bold">@record.PatientName</h6>
+                                <small class="text-muted">
+                                    @record.Date.ToString("yyyy-MM-dd") · @record.DoctorName
+                                </small>
+                            </div>
+                            <button class="btn btn-outline-primary btn-sm">Consultation</button>
+                        </div>
+
+                        <hr />
+
+                        <div class="mb-2">
+                            <strong>Chief Complaint:</strong> @record.ChiefComplaint
+                        </div>
+                        <div class="mb-2">
+                            <strong>Diagnosis:</strong> @record.Diagnosis
+                        </div>
+
+                        <div class="mb-2">
+                            <strong>Prescription:</strong><br />
+                            @foreach (var med in record.Prescriptions)
+                            {
+                                <span class="badge bg-info text-dark">@med</span>
+                            }
+                        </div>
+
+                        <div class="row text-center bg-light p-2 rounded mb-2">
+                            <div class="col">
+                                <div class="fw-bold">Blood Pressure</div>
+                                <div>@record.BloodPressure</div>
+                            </div>
+                            <div class="col">
+                                <div class="fw-bold">Heart Rate</div>
+                                <div>@record.HeartRate</div>
+                            </div>
+                            <div class="col">
+                                <div class="fw-bold">Temperature</div>
+                                <div>@record.Temperature °C</div>
+                            </div>
+                            <div class="col">
+                                <div class="fw-bold">Weight</div>
+                                <div>@record.Weight kg</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <strong>Notes:</strong> @record.Notes
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info">No medical records available.</div>
+        }
+    </div>
+</div>

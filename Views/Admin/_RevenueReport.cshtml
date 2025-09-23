@@ -1,0 +1,31 @@
+﻿@model LinkCare_IT15.Models.AdminModel.ReportsViewModel
+
+<div class="card p-3 shadow-sm">
+    <h4>💰 Revenue Analysis</h4>
+    <canvas id="revenueChart" style="height:300px;"></canvas>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'bar',
+            data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                datasets: [{
+                    label: "Revenue",
+                    data: [12000, 15000, 10000, 18000, 20000, 22000],
+                    backgroundColor: "rgba(54, 162, 235, 0.6)",
+                    borderColor: "rgba(54, 162, 235, 1)",
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    });
+</script>

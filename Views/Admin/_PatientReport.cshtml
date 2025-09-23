@@ -1,0 +1,35 @@
+﻿@model LinkCare_IT15.Models.AdminModel.ReportsViewModel
+
+<div class="card p-3 shadow-sm">
+    <h4>🧑‍⚕️ Patient Analytics</h4>
+    <canvas id="patientChart" style="height:300px;"></canvas>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        new Chart(document.getElementById('patientChart'), {
+            type: 'pie',
+            data: {
+                labels: ["Male", "Female", "Children"],
+                datasets: [{
+                    label: "Patient Distribution",
+                    data: [40, 35, 25],
+                    backgroundColor: [
+                        "#36A2EB",
+                        "#FF6384",
+                        "#FFCE56"
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
+                }
+            }
+        });
+    });
+</script>
