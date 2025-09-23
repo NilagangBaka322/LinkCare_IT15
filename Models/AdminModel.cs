@@ -111,7 +111,17 @@ namespace LinkCare_IT15.Models.AdminModel
         public List<RevenueData> Revenues { get; set; } = new List<RevenueData>();
         public List<PatientAnalyticsData> Patients { get; set; } = new List<PatientAnalyticsData>();
     }
-
+   
+    public class BillRecord
+    {
+        public int Id { get; set; }               // Bill ID (for actions like MarkPaid)
+        public string PatientName { get; set; }  // Name of the patient
+        public DateTime Date { get; set; }       // Date of the bill
+        public string Services { get; set; }     // Description of services
+        public decimal Amount { get; set; }      // Total amount of the bill
+        public string Status { get; set; }       // "Paid", "Pending", "Overdue", etc.
+    }
+    
     public class RevenueData
     {
         public string Month { get; set; }
