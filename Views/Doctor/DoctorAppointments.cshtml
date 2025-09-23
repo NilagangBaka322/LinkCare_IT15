@@ -10,15 +10,89 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
 <style>
+    /* Compact & responsive layout */
+    .lc-card {
+        padding: 1rem !important;
+    }
+
     #calendar {
-        min-height: 400px;
+        min-height: 300px;
         background: #fff;
-        z-index: 1;
+        border-radius: 6px;
+        overflow: hidden;
     }
 
     .fc {
-        z-index: 2;
-        position: relative;
+        font-size: 0.85rem;
+    }
+
+    .fc-toolbar-title {
+        font-size: 1rem !important;
+    }
+
+    .fc-button {
+        padding: 0.25rem 0.4rem !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Schedule list */
+    .list-group {
+        max-height: 320px;
+        overflow-y: auto;
+        padding-right: 6px;
+    }
+
+    .list-group-item {
+        padding: 0.45rem 0.6rem !important;
+        font-size: 0.9rem;
+    }
+
+        .list-group-item small {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+    /* Modal compactness */
+    .modal-body .mb-3 {
+        margin-bottom: 0.6rem !important;
+    }
+
+    .modal-footer {
+        padding: 0.5rem 1rem !important;
+    }
+
+    /* Responsive tweaks (escape with @@ to avoid Razor parsing error) */
+    @@media (max-width: 992px) {
+        #calendar {
+            min-height: 260px;
+        }
+
+        .list-group {
+            max-height: 260px;
+        }
+
+        .border-end {
+            border-right: none !important;
+            border-bottom: 1px solid #dee2e6 !important;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        #calendar {
+            min-height: 220px;
+        }
+
+        .list-group {
+            max-height: none;
+            overflow: visible;
+        }
+
+        .list-group-item {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.5rem !important;
+        }
     }
 </style>
 
@@ -28,20 +102,19 @@
         <p class="text-muted">Manage your appointments and calendar view</p>
     </div>
 
-    <div class="lc-card p-4">
+    <div class="lc-card p-3 shadow-sm rounded bg-white">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="mb-0"><i class="bi bi-calendar2 me-2"></i>Doctor's Schedule</h5>
             <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newAppointmentModal">
                 + New Appointment
             </button>
         </div>
-        <p class="text-muted">Manage your appointments and calendar</p>
 
         <div class="row">
             <!-- Calendar View -->
             <div class="col-md-6 border-end">
                 <h6 class="fw-bold mb-2">Calendar View</h6>
-                <div class="p-3 border rounded bg-light">
+                <div class="p-2 border rounded bg-light">
                     <div id="calendar"></div>
                 </div>
             </div>
@@ -104,7 +177,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Create Appointment</button>
+                    <button type="submit" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Register Patient</button>
                 </div>
             </form>
         </div>
@@ -116,10 +190,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         var calendarEl = document.getElementById('calendar');
-        if (!calendarEl) {
-            console.error('Calendar element not found!');
-            return;
-        }
+        if (!calendarEl) return;
 
         calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
@@ -130,9 +201,7 @@
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
-            events: [
-                // Map your existing appointments here if needed
-            ],
+            events: [],
             select: function (info) {
                 alert('Selected: ' + info.startStr + ' to ' + info.endStr);
             },
@@ -160,22 +229,15 @@
         })
         .then(response => response.json())
         .then(data => {
-            // Add to FullCalendar
             calendar.addEvent({
                 id: data.id,
                 title: `${data.title}: ${data.patientName}`,
                 start: data.startDate,
                 end: data.endDate
             });
-
-            // Close modal and reset form
-            var modal = bootstrap.Modal.getInstance(document.getElementById('newAppointmentModal'));
-            modal.hide();
+            bootstrap.Modal.getInstance(document.getElementById('newAppointmentModal')).hide();
             e.target.reset();
         })
-        .catch(error => {
-            alert('Error creating appointment.');
-            console.error(error);
-        });
+        .catch(error => console.error(error));
     });
 </script>

@@ -12,94 +12,99 @@
     </div>
 
     <div class="lc-card p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <h5 class="mb-2 mb-md-0">
                 <i class="bi bi-person-plus me-2"></i> Register Patient
             </h5>
             <a asp-action="Patients" class="btn btn-secondary btn-sm">View Patients</a>
         </div>
 
-        <p class="text-muted">Fill out the personal and medical information below</p>
+        <form asp-action="RegisterPatient" method="post">
+            <div class="row g-4">
+                <!-- Personal Information -->
+                <div class="col-12 col-lg-6">
+                    <h6 class="fw-bold mb-2">Personal Information</h6>
+                    <div class="p-3 border rounded bg-light h-100">
 
-        <div class="row">
-            <!-- Personal Information -->
-            <div class="col-md-6 border-end">
-                <h6 class="fw-bold mb-2">Personal Information</h6>
-                <div class="p-3 border rounded bg-light">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label asp-for="FirstName" class="form-label"></label>
+                                <input asp-for="FirstName" class="form-control" />
+                            </div>
 
-                    <div class="mb-3">
-                        <label asp-for="FirstName" class="form-label"></label>
-                        <input asp-for="FirstName" class="form-control" />
+                            <div class="col-12 col-md-6">
+                                <label asp-for="LastName" class="form-label"></label>
+                                <input asp-for="LastName" class="form-control" />
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label asp-for="DateOfBirth" class="form-label"></label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label asp-for="Gender" class="form-label"></label>
+                                <select asp-for="Gender" class="form-select">
+                                    <option value="">Select gender</option>
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label"></label>
+                                <input asp-for="PhoneNumber" class="form-control" />
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" type="email" class="form-control" />
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Address" class="form-label"></label>
+                                <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="EmergencyContact" class="form-label"></label>
+                                <input asp-for="EmergencyContact" class="form-control" />
+                            </div>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="mb-3">
-                        <label asp-for="LastName" class="form-label"></label>
-                        <input asp-for="LastName" class="form-control" />
-                    </div>
+                <!-- Medical Information -->
+                <div class="col-12 col-lg-6">
+                    <h6 class="fw-bold mb-2">Medical Information</h6>
+                    <div class="p-3 border rounded bg-light h-100">
 
-                    <div class="mb-3">
-                        <label asp-for="DateOfBirth" class="form-label"></label>
-                        <input asp-for="DateOfBirth" type="date" class="form-control" />
-                    </div>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label asp-for="MedicalHistory" class="form-label"></label>
+                                <textarea asp-for="MedicalHistory" class="form-control" rows="2"></textarea>
+                            </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Gender" class="form-label"></label>
-                        <select asp-for="Gender" class="form-select">
-                            <option value="">Select gender</option>
-                            <option>Male</option>
-                            <option>Female</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
+                            <div class="col-12 col-md-6">
+                                <label asp-for="Allergies" class="form-label"></label>
+                                <textarea asp-for="Allergies" class="form-control" rows="2"></textarea>
+                            </div>
 
-                    <div class="mb-3">
-                        <label asp-for="PhoneNumber" class="form-label"></label>
-                        <input asp-for="PhoneNumber" class="form-control" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" type="email" class="form-control" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Address" class="form-label"></label>
-                        <textarea asp-for="Address" class="form-control"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="EmergencyContact" class="form-label"></label>
-                        <input asp-for="EmergencyContact" class="form-control" />
+                            <div class="col-12">
+                                <label asp-for="CurrentMedications" class="form-label"></label>
+                                <textarea asp-for="CurrentMedications" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Medical Information -->
-            <div class="col-md-6">
-                <h6 class="fw-bold mb-2">Medical Information</h6>
-                <div class="p-3 border rounded bg-light">
-
-                    <div class="mb-3">
-                        <label asp-for="MedicalHistory" class="form-label"></label>
-                        <textarea asp-for="MedicalHistory" class="form-control"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Allergies" class="form-label"></label>
-                        <textarea asp-for="Allergies" class="form-control"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="CurrentMedications" class="form-label"></label>
-                        <textarea asp-for="CurrentMedications" class="form-control"></textarea>
-                    </div>
-                </div>
+            <!-- Buttons -->
+            <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
+                <a asp-action="Patients" class="btn btn-secondary px-4">Cancel</a>
+                <button type="submit" class="btn btn-primary px-4">Register Patient</button>
             </div>
-        </div>
-
-        <div class="d-flex justify-content-end mt-3">
-            <a asp-action="Patients" class="btn btn-secondary me-2">Cancel</a>
-            <button type="submit" class="btn btn-primary">Register Patient</button>
-        </div>
+        </form>
     </div>
 </div>
