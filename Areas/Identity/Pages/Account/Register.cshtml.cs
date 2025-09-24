@@ -90,6 +90,7 @@ namespace LinkCare_IT15.Areas.Identity.Pages.Account
             [Required]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
+            [MinLength(12, ErrorMessage = "Password must be at least 12 characters long.")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
