@@ -1,11 +1,13 @@
-﻿namespace LinkCare_IT15.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+public class AccountRegisterModel
 {
-    public class RegisterModel
-    {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public string ConfirmPassword { get; set; }
-    }
+    public string FirstName { get; set; }   // optional
+    public string LastName { get; set; }    // optional
+    [Required, EmailAddress]
+    public string Email { get; set; }
+    [Required, MinLength(12)]
+    public string Password { get; set; }
+    [Compare("Password")]
+    public string ConfirmPassword { get; set; }
 }

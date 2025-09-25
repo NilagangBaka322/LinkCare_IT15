@@ -192,7 +192,7 @@ namespace LinkCare_IT15.Controllers
                 Bills = new List<AdminBillViewModel>
         {
             new AdminBillViewModel {
-                Id = 1,
+                Id = "1",
                 PatientName = "Patient User",
                 Date = new DateTime(2025, 8, 20),
                 Services = "Annual Physical Exam, Blood Work Panel",
@@ -200,7 +200,7 @@ namespace LinkCare_IT15.Controllers
                 Status = "paid"
             },
             new AdminBillViewModel {
-                Id = 2,
+                Id = "2",
                 PatientName = "Sarah Smith",
                 Date = new DateTime(2025, 8, 15),
                 Services = "Follow-up Visit, Pulmonary Function Test",
@@ -208,7 +208,7 @@ namespace LinkCare_IT15.Controllers
                 Status = "pending"
             },
             new AdminBillViewModel {
-                Id = 3,
+                Id = "3",
                 PatientName = "Michael Johnson",
                 Date = new DateTime(2025, 8, 10),
                 Services = "Cardiology Consultation, Stress Test",
@@ -259,7 +259,7 @@ namespace LinkCare_IT15.Controllers
             var doctors = new List<DoctorViewModel>
     {
         new DoctorViewModel {
-            Id = 1,
+            Id = "1",
             FullName = "Dr. Emily Wilson",
             Email = "emily.wilson@linkcare.com",
             Phone = "+63-917-111-2222",
@@ -270,7 +270,7 @@ namespace LinkCare_IT15.Controllers
             LastLogin = new DateTime(2025,9,13)
         },
         new DoctorViewModel {
-            Id = 2,
+            Id = "2",
             FullName = "Dr. Robert Brown",
             Email = "robert.brown@linkcare.com",
             Phone = "+63-917-333-4444",
@@ -281,7 +281,7 @@ namespace LinkCare_IT15.Controllers
             LastLogin = new DateTime(2025,9,12)
         },
         new DoctorViewModel {
-            Id = 3,
+            Id = "3",
             FullName = "Dr. Maria Garcia",
             Email = "maria.garcia@linkcare.com",
             Phone = "+63-917-555-6666",
@@ -292,7 +292,7 @@ namespace LinkCare_IT15.Controllers
             LastLogin = new DateTime(2025,8,30)
         },
         new DoctorViewModel {
-            Id = 4,
+            Id = "4",
             FullName = "Dr. James Lee",
             Email = "james.lee@linkcare.com",
             Phone = "+63-917-777-8888",

@@ -32,12 +32,14 @@ namespace LinkCare_IT15.Data.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -46,10 +48,17 @@ namespace LinkCare_IT15.Data.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("FullName")
+                    b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -97,113 +106,63 @@ namespace LinkCare_IT15.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("LinkCare_IT15.Models.Entities.Appointment", b =>
+            modelBuilder.Entity("LinkCare_IT15.Models.Entities.Consultation", b =>
                 {
-                    b.Property<int>("AppointmentId")
+                    b.Property<int>("ConsultationId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AppointmentId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsultationId"));
 
-                    b.Property<int>("DoctorId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("EndTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("PatientId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
+                    b.Property<string>("BloodPressure")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("AppointmentId");
+                    b.Property<string>("ChiefComplaint")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Diagnosis")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DoctorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("HeartRate")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PatientId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Prescriptions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Temperature")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Weight")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ConsultationId");
 
                     b.HasIndex("DoctorId");
 
                     b.HasIndex("PatientId");
 
-                    b.ToTable("Appointments", (string)null);
-                });
-
-            modelBuilder.Entity("LinkCare_IT15.Models.Entities.Doctor", b =>
-                {
-                    b.Property<int>("DoctorId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DoctorId"));
-
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ContactNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LicenseNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Specialty")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("DoctorId");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Doctors", (string)null);
-                });
-
-            modelBuilder.Entity("LinkCare_IT15.Models.Entities.Patient", b =>
-                {
-                    b.Property<int>("PatientId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PatientId"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ContactNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DateOfBirth")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Gender")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("PatientId");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Patients", (string)null);
+                    b.ToTable("Consultations");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -286,12 +245,10 @@ namespace LinkCare_IT15.Data.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -328,12 +285,10 @@ namespace LinkCare_IT15.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -343,53 +298,22 @@ namespace LinkCare_IT15.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("LinkCare_IT15.Models.Entities.Appointment", b =>
+            modelBuilder.Entity("LinkCare_IT15.Models.Entities.Consultation", b =>
                 {
-                    b.HasOne("LinkCare_IT15.Models.Entities.Doctor", "Doctor")
-                        .WithMany("Appointments")
+                    b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", "Doctor")
+                        .WithMany("ConsultationsAsDoctor")
                         .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("LinkCare_IT15.Models.Entities.Patient", "Patient")
-                        .WithMany("Appointments")
+                    b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", "Patient")
+                        .WithMany("ConsultationsAsPatient")
                         .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Doctor");
 
                     b.Navigation("Patient");
-                });
-
-            modelBuilder.Entity("LinkCare_IT15.Models.Entities.Doctor", b =>
-                {
-                    b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", null)
-                        .WithMany("DoctorProfile")
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("LinkCare_IT15.Models.Entities.Patient", b =>
-                {
-                    b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", null)
-                        .WithMany("PatientProfile")
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -445,19 +369,9 @@ namespace LinkCare_IT15.Data.Migrations
 
             modelBuilder.Entity("LinkCare_IT15.Models.Entities.ApplicationUser", b =>
                 {
-                    b.Navigation("DoctorProfile");
+                    b.Navigation("ConsultationsAsDoctor");
 
-                    b.Navigation("PatientProfile");
-                });
-
-            modelBuilder.Entity("LinkCare_IT15.Models.Entities.Doctor", b =>
-                {
-                    b.Navigation("Appointments");
-                });
-
-            modelBuilder.Entity("LinkCare_IT15.Models.Entities.Patient", b =>
-                {
-                    b.Navigation("Appointments");
+                    b.Navigation("ConsultationsAsPatient");
                 });
 #pragma warning restore 612, 618
         }

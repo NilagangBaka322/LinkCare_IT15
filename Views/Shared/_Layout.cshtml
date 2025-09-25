@@ -1,6 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
+@using LinkCare_IT15.Models.Entities   @* For ApplicationUser *@
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
 
 <!DOCTYPE html>
 <html lang="en">

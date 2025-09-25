@@ -24,8 +24,8 @@ namespace LinkCare_IT15.Models.DoctorModel
     public class ConsultationViewModel
     {
         public int ConsultationId { get; set; }
-        public int PatientId { get; set; }
-        public int DoctorId { get; set; }
+        public string PatientId { get; set; }      // string now
+        public string DoctorId { get; set; }       // string
         public DateTime Date { get; set; } = DateTime.Now;
 
         public string ChiefComplaint { get; set; }
@@ -33,19 +33,34 @@ namespace LinkCare_IT15.Models.DoctorModel
         public List<string> Prescriptions { get; set; } = new List<string>();
         public string Notes { get; set; }
 
-        // vitals
+        // Vitals
         public string BloodPressure { get; set; }
         public string HeartRate { get; set; }
         public string Temperature { get; set; }
         public string Weight { get; set; }
 
+        // Display info
         public string PatientName { get; set; }
         public string DoctorName { get; set; }
-
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string ContactNumber { get; set; }
     }
+
+    // DoctorModel.cs
+    public class ConsultationCreateViewModel
+    {
+        public string PatientId { get; set; } // string now, null or empty = walk-in
+        public string PatientName { get; set; }
+        public string DoctorId { get; set; } // string because Identity uses string IDs
+        public string ChiefComplaint { get; set; }
+        public string Diagnosis { get; set; }
+        public List<string> Prescriptions { get; set; } = new List<string>();
+        public string Notes { get; set; }
+        public string BloodPressure { get; set; }
+        public string HeartRate { get; set; }
+        public string Temperature { get; set; }
+        public string Weight { get; set; }
+    }
+
+
 
     public class MedicalRecordViewModel
     {
@@ -99,4 +114,12 @@ namespace LinkCare_IT15.Models.DoctorModel
         public string Status { get; set; }
         public DateTime LastVisit { get; set; }
     }
+
+
+    public class DoctorConsultationPageViewModel
+    {
+        public List<ConsultationViewModel> Consultations { get; set; } = new();
+        public ConsultationCreateViewModel NewConsultation { get; set; } = new();
+    }
+
 }

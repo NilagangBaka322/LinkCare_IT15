@@ -4,19 +4,30 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LinkCare_IT15.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options) { }
 
-        public DbSet<Doctor> Doctors { get; set; }
-        public DbSet<Patient> Patients { get; set; }
        
-        public DbSet<Consultations> Consultations { get; set; }
+        public DbSet<Consultation> Consultations { get; set; }  // ✅ singular
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<Consultation>()
+                .HasOne(c => c.Doctor)
+                .WithMany(u => u.ConsultationsAsDoctor)
+                .HasForeignKey(c => c.DoctorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Consultation>()
+                .HasOne(c => c.Patient)
+                .WithMany(u => u.ConsultationsAsPatient)
+                .HasForeignKey(c => c.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
+
     }
 }

@@ -96,7 +96,7 @@ namespace LinkCare_IT15.Models.AdminModel
 
     public class AdminBillViewModel
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string PatientName { get; set; }
         public DateTime Date { get; set; }
         public string Services { get; set; }
@@ -114,7 +114,7 @@ namespace LinkCare_IT15.Models.AdminModel
    
     public class BillRecord
     {
-        public int Id { get; set; }               // Bill ID (for actions like MarkPaid)
+        public string Id { get; set; }               // Bill ID (for actions like MarkPaid)
         public string PatientName { get; set; }  // Name of the patient
         public DateTime Date { get; set; }       // Date of the bill
         public string Services { get; set; }     // Description of services
@@ -136,7 +136,7 @@ namespace LinkCare_IT15.Models.AdminModel
 
     public class DoctorViewModel
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string FullName { get; set; } = "";
         public string Email { get; set; } = "";
         public string Phone { get; set; } = "";

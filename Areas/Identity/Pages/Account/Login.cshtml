@@ -1,4 +1,10 @@
-﻿@page
+﻿
+
+@page
+@using LinkCare_IT15.Models.Entities
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
 @model LoginModel
 @inject IConfiguration configuration
 @{

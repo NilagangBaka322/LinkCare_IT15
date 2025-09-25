@@ -1,41 +1,40 @@
 ﻿using LinkCare_IT15.Controllers;
 using LinkCare_IT15.Data;
+using LinkCare_IT15.Models.Entities;
 using LinkCare_IT15.Services;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Database
+// -------------------- DATABASE --------------------
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-// Identity + Lockout
-builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+// -------------------- IDENTITY --------------------
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = true;
-
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(15); // 15 sec cooldown
+    options.SignIn.RequireConfirmedAccount = false; // for testing
+    options.Password.RequiredLength = 12;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(15);
     options.Lockout.MaxFailedAccessAttempts = 5;
-    options.Lockout.AllowedForNewUsers = true;
 })
-.AddRoles<IdentityRole>()
-.AddEntityFrameworkStores<ApplicationDbContext>();
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
+// -------------------- CONTROLLERS / VIEWS / RAZOR PAGES --------------------
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages(); // ✅ Add Razor Pages support
+
+// -------------------- SERVICES --------------------
 builder.Services.AddScoped<RecaptchaService>();
 builder.Services.AddHttpClient();
 
-
-
-
-// ✅ Add Session support
+// -------------------- SESSION --------------------
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -44,6 +43,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+// -------------------- LOGGING --------------------
 builder.Services.AddLogging(logging =>
 {
     logging.AddConsole();
@@ -53,18 +53,10 @@ builder.Services.AddLogging(logging =>
 
 var app = builder.Build();
 
-// Seed roles
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    await SeedRoles.Initialize(services);
-}
-
-// Middleware pipeline
+// -------------------- MIDDLEWARE --------------------
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.UseMigrationsEndPoint();
 }
 else
 {
@@ -74,17 +66,34 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
+
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseSession(); // ✅ IMPORTANT: after Auth, before MapRazorPages
+// -------------------- SEED ROLES --------------------
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        await SeedRoles.Initialize(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred seeding the roles.");
+    }
+}
 
+// -------------------- ROUTING --------------------
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// ✅ Map Razor Pages for Identity
 app.MapRazorPages();
 
 app.Run();

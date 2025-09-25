@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using LinkCare_IT15.Models.Entities; // ✅ so ApplicationUser is recognized
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
@@ -12,11 +13,11 @@ namespace LinkCare_IT15.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;  // ✅ switched to ApplicationUser
         private readonly ILogger<LoginModel> _logger;
         private readonly IConfiguration _configuration;
 
-        public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger, IConfiguration configuration)
+        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger, IConfiguration configuration)
         {
             _signInManager = signInManager;
             _logger = logger;
@@ -79,7 +80,12 @@ namespace LinkCare_IT15.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                // ✅ Sign in using ApplicationUser’s UserName/Email
+                var result = await _signInManager.PasswordSignInAsync(
+                    Input.Email,
+                    Input.Password,
+                    Input.RememberMe,
+                    lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {

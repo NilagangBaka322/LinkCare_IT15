@@ -25,21 +25,23 @@
                 <div class="col-12 col-lg-6">
                     <h6 class="fw-bold mb-2">Personal Information</h6>
                     <div class="p-3 border rounded bg-light h-100">
-
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label asp-for="FirstName" class="form-label"></label>
                                 <input asp-for="FirstName" class="form-control" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label asp-for="LastName" class="form-label"></label>
                                 <input asp-for="LastName" class="form-control" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label asp-for="DateOfBirth" class="form-label"></label>
                                 <input asp-for="DateOfBirth" type="date" class="form-control" />
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                             </div>
 
                             <div class="col-12 col-md-6">
@@ -50,26 +52,31 @@
                                     <option>Female</option>
                                     <option>Other</option>
                                 </select>
+                                <span asp-validation-for="Gender" class="text-danger"></span>
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label asp-for="PhoneNumber" class="form-label"></label>
                                 <input asp-for="PhoneNumber" class="form-control" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label asp-for="Email" class="form-label"></label>
                                 <input asp-for="Email" type="email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
 
                             <div class="col-12">
                                 <label asp-for="Address" class="form-label"></label>
                                 <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+                                <span asp-validation-for="Address" class="text-danger"></span>
                             </div>
 
                             <div class="col-12">
                                 <label asp-for="EmergencyContact" class="form-label"></label>
                                 <input asp-for="EmergencyContact" class="form-control" />
+                                <span asp-validation-for="EmergencyContact" class="text-danger"></span>
                             </div>
                         </div>
                     </div>
@@ -79,21 +86,23 @@
                 <div class="col-12 col-lg-6">
                     <h6 class="fw-bold mb-2">Medical Information</h6>
                     <div class="p-3 border rounded bg-light h-100">
-
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label asp-for="MedicalHistory" class="form-label"></label>
                                 <textarea asp-for="MedicalHistory" class="form-control" rows="2"></textarea>
+                                <span asp-validation-for="MedicalHistory" class="text-danger"></span>
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label asp-for="Allergies" class="form-label"></label>
                                 <textarea asp-for="Allergies" class="form-control" rows="2"></textarea>
+                                <span asp-validation-for="Allergies" class="text-danger"></span>
                             </div>
 
                             <div class="col-12">
                                 <label asp-for="CurrentMedications" class="form-label"></label>
                                 <textarea asp-for="CurrentMedications" class="form-control" rows="2"></textarea>
+                                <span asp-validation-for="CurrentMedications" class="text-danger"></span>
                             </div>
                         </div>
                     </div>
@@ -108,3 +117,9 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
