@@ -143,26 +143,45 @@ namespace LinkCare_IT15.Controllers
         // ======================
         // Doctor Patients
         // ======================
-        public async Task<IActionResult> DoctorPatients()
+        public IActionResult DoctorPatients()
         {
-            var patients = new List<ApplicationUser>();
-            foreach (var user in _userManager.Users)
-            {
-                if (await _userManager.IsInRoleAsync(user, "Patient"))
-                    patients.Add(user);
-            }
-
             var model = new DoctorPatientsModel
             {
-                Patients = patients.Select(p => new DoctorPatientViewModel
+                Patients = new List<DoctorPatientViewModel>
                 {
-                    PatientName = p.FirstName + " " + p.LastName,
-                    Age = p.DateOfBirth.HasValue ? DateTime.Today.Year - p.DateOfBirth.Value.Year : 0,
-                    Gender = p.Gender ?? "N/A",
-                    Contact = p.PhoneNumber ?? "N/A",
-                    Status = "Active",
-                    LastVisit = DateTime.Today.AddDays(-3)
-                }).ToList()
+                    new DoctorPatientViewModel {
+                        PatientName = "Patient User",
+                        Age = 30,
+                        Gender = "Male",
+                        Contact = "0912-345-6789",
+                        Status = "Active",
+                        LastVisit = DateTime.Today.AddDays(-3)
+                    },
+                    new DoctorPatientViewModel {
+                        PatientName = "Sarah Smith",
+                        Age = 27,
+                        Gender = "Female",
+                        Contact = "0917-222-3333",
+                        Status = "Active",
+                        LastVisit = DateTime.Today.AddDays(-10)
+                    },
+                    new DoctorPatientViewModel {
+                        PatientName = "Michael Johnson",
+                        Age = 45,
+                        Gender = "Male",
+                        Contact = "0918-555-9999",
+                        Status = "Inactive",
+                        LastVisit = DateTime.Today.AddDays(-60)
+                    },
+                    new DoctorPatientViewModel {
+                        PatientName = "Lisa Rodriguez",
+                        Age = 35,
+                        Gender = "Female",
+                        Contact = "0917-123-4567",
+                        Status = "Active",
+                        LastVisit = DateTime.Today.AddDays(-1)
+                    }
+                }
             };
 
             return View(model);
