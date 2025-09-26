@@ -5,182 +5,6 @@
     Layout = "~/Views/Shared/_DoctorLayout.cshtml";
 }
 
-<!-- FullCalendar CSS/JS (v6+) -->
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-
-<style>
-    /* Compact & responsive layout */
-    .lc-card {
-        padding: 1rem !important;
-    }
-
-    /* Calendar container */
-    #calendar {
-        min-height: 300px; /* default */
-        max-height: 500px;
-        background: #fff;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-
-    /* FullCalendar base */
-    .fc {
-        font-size: 0.85rem;
-    }
-
-    .fc-toolbar-title {
-        font-size: 1rem !important;
-        font-weight: 600;
-    }
-
-    .fc-button {
-        padding: 0.25rem 0.4rem !important;
-        font-size: 0.8rem !important;
-    }
-
-    /* Schedule list */
-    .list-group {
-        max-height: 320px;
-        overflow-y: auto;
-        padding-right: 6px;
-    }
-
-    .list-group-item {
-        padding: 0.45rem 0.6rem !important;
-        font-size: 0.9rem;
-    }
-
-        .list-group-item small {
-            font-size: 0.75rem;
-            color: #6c757d;
-        }
-
-    /* Modal compactness */
-    .modal-body .mb-3 {
-        margin-bottom: 0.6rem !important;
-    }
-
-    .modal-footer {
-        padding: 0.5rem 1rem !important;
-    }
-
-    /* Desktop adjustments (≥992px) */
-    @@media (min-width: 992px) {
-        #calendar
-
-    {
-        min-height: 350px;
-        max-height: 450px;
-    }
-
-    }
-
-    /* Tablets & smaller (<992px) */
-    @@media (max-width: 991.98px) {
-        /* Stack calendar above schedule */
-        #calendar-col
-
-    {
-        order: 1;
-    }
-
-    #schedule-col {
-        order: 2;
-        margin-top: 1rem;
-    }
-
-    /* Adjust font sizes */
-    #calendar {
-        min-height: 280px;
-        max-height: 380px;
-    }
-
-    .fc {
-        font-size: 0.8rem;
-    }
-
-    .fc-toolbar-title {
-        font-size: 0.9rem !important;
-    }
-
-    .fc-button {
-        font-size: 0.76rem !important;
-        padding: 0.25rem 0.4rem !important;
-    }
-
-    .list-group-item {
-        font-size: 0.85rem;
-    }
-
-        .list-group-item small {
-            font-size: 0.72rem;
-        }
-
-    }
-
-    /* Small tablets & large phones (<768px) */
-        @@media (max-width: 767.98px) {
-        #calendar
-
-    {
-        min-height: 220px;
-        max-height: 300px;
-    }
-
-    .fc {
-        font-size: 0.75rem;
-    }
-
-    .fc-toolbar-title {
-        font-size: 0.85rem !important;
-    }
-
-    .fc-button {
-        font-size: 0.7rem !important;
-        padding: 0.2rem 0.35rem !important;
-    }
-
-    .row > .col-lg-6 {
-        margin-bottom: 1rem;
-    }
-
-    }
-
-    /* Small phones (<576px) */
-            @@media (max-width: 575.98px) {
-        #calendar
-
-    {
-        min-height: 200px;
-        max-height: 260px;
-    }
-
-    .fc {
-        font-size: 0.7rem;
-    }
-
-    .fc-toolbar-title {
-        font-size: 0.8rem !important;
-    }
-
-    .fc-button {
-        font-size: 0.65rem !important;
-        padding: 0.18rem 0.3rem !important;
-    }
-
-    .list-group-item {
-        font-size: 0.8rem;
-    }
-
-        .list-group-item small {
-            font-size: 0.7rem;
-        }
-
-    }
-</style>
-
-
 <div class="container-fluid">
     <div class="mb-3">
         <h3 class="fw-bold">My Schedule</h3>
@@ -196,46 +20,52 @@
         </div>
 
         <div class="row">
-            <div class="row align-items-start">
-                <!-- Calendar View -->
-                <div id="calendar-col" class="col-lg-6 mb-4 mb-lg-0 order-1 order-lg-1">
-                    <h6 class="fw-bold mb-2">Calendar View</h6>
-                    <div class="p-2 border rounded bg-light">
-                        <div id="calendar"></div>
-                    </div>
-                </div>
-
-                <!-- Today's Schedule -->
-                <div id="schedule-col" class="col-lg-6 order-2 order-lg-2">
-                    <h6 class="fw-bold mb-2">Today's Schedule</h6>
-                    <p class="small text-muted">@Model.Appointments.Count apts</p>
-                    <div class="list-group">
-                        @foreach (var appt in Model.Appointments.OrderBy(a => a.AppointmentDate))
-                        {
-                            var badgeClass = appt.Status.ToLower() switch
-                            {
-                                "completed" => "bg-success-subtle text-success",
-                                "cancelled" => "bg-danger-subtle text-danger",
-                                _ => "bg-primary-subtle text-primary"
-                            };
-                            <div class="list-group-item d-flex justify-content-between align-items-start mb-2 rounded shadow-sm">
-                                <div>
-                                    <div class="fw-semibold text-primary">
-                                        <i class="bi bi-clock me-1"></i>@appt.AppointmentDate.ToString("HH:mm")
-                                    </div>
-                                    <div>@appt.PatientName</div>
-                                    <small class="text-muted">@appt.Title</small>
-                                </div>
-                                <span class="badge rounded-pill @badgeClass align-self-center">
-                                    @appt.Status.ToLower()
-                                </span>
-                            </div>
-                        }
-                    </div>
+            <!-- Calendar -->
+            <div id="calendar-col" class="col-lg-6 mb-4 mb-lg-0">
+                <h6 class="fw-bold mb-2">Calendar View</h6>
+                <div class="p-2 border rounded bg-light">
+                    <div id="calendar"></div>
                 </div>
             </div>
-        </div>
 
+            <!-- Today's Schedule -->
+            <div id="schedule-col" class="col-lg-6">
+                <h6 class="fw-bold mb-2">Today's Schedule</h6>
+                <p class="small text-muted">@Model.Schedule.Appointments.Count apts</p>
+                <div class="list-group">
+                    @foreach (var appt in Model.Schedule.Appointments.OrderBy(a => a.StartDate))
+                    {
+                        var displayName = !string.IsNullOrEmpty(appt.PatientName)
+                        ? appt.PatientName
+                        : !string.IsNullOrEmpty(appt.WalkInName)
+                        ? appt.WalkInName
+                        : "Unknown";
+
+                        string statusText = appt.Status.ToString().ToLowerInvariant();
+                        string badgeClass = statusText switch
+                        {
+                            "completed" => "bg-success-subtle text-success",
+                            "cancelled" => "bg-danger-subtle text-danger",
+                            _ => "bg-primary-subtle text-primary"
+                        };
+
+                        <div class="list-group-item d-flex justify-content-between align-items-start mb-2 rounded shadow-sm">
+                            <div>
+                                <div class="fw-semibold text-primary">
+                                    <i class="bi bi-clock me-1"></i>@appt.StartDate.ToString("HH:mm")
+                                </div>
+                                <div>@displayName</div>
+                                <small class="text-muted">@appt.Title</small>
+                            </div>
+                            <span class="badge rounded-pill @badgeClass align-self-center">
+                                @statusText
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <!-- New Appointment Modal -->
@@ -243,150 +73,97 @@
         <div class="modal-dialog">
             <form id="newAppointmentForm" class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="newAppointmentLabel">New Appointment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">New Appointment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+
+                    <!-- Patient Type -->
                     <div class="mb-3">
-                        <label for="patientName" class="form-label">Patient Name</label>
-                        <input type="text" class="form-control" id="patientName" name="PatientName" required />
+                        <label class="form-label">Patient Type</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="patientType" id="patientTypeRegistered" value="registered" checked>
+                                <label class="form-check-label" for="patientTypeRegistered">Registered</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="patientType" id="patientTypeWalkin" value="walkin">
+                                <label class="form-check-label" for="patientTypeWalkin">Walk-in</label>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Registered Patient Search -->
+                    <div class="mb-3 position-relative" id="registeredPatientContainer">
+                        <label class="form-label">Select Registered Patient</label>
+                        <input type="text" id="patientName" class="form-control" placeholder="Search patient..." autocomplete="off">
+                        <ul id="patientDropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y:auto;"></ul>
+                    </div>
+
+                    <!-- Walk-in Patient -->
+                    <div id="walkinPatientContainer" class="d-none">
+                        <div class="mb-3">
+                            <label for="walkinFirstName" class="form-label">First Name</label>
+                            <input type="text" id="walkinFirstName" class="form-control" placeholder="First Name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="walkinLastName" class="form-label">Last Name</label>
+                            <input type="text" id="walkinLastName" class="form-control" placeholder="Last Name">
+                        </div>
+                    </div>
+
+                    <!-- Appointment Title -->
                     <div class="mb-3">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" name="Title" required />
+                        <label for="title" class="form-label">Appointment Title</label>
+                        <input type="text" id="title" class="form-control" placeholder="Reason / Title">
                     </div>
+
+                    <!-- Start / End Date -->
                     <div class="mb-3">
                         <label for="startDate" class="form-label">Start Date & Time</label>
-                        <input type="datetime-local" class="form-control" id="startDate" name="StartDate" required />
+                        <input type="datetime-local" id="startDate" class="form-control">
                     </div>
                     <div class="mb-3">
                         <label for="endDate" class="form-label">End Date & Time</label>
-                        <input type="datetime-local" class="form-control" id="endDate" name="EndDate" required />
+                        <input type="datetime-local" id="endDate" class="form-control">
                     </div>
                 </div>
+
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-secondary">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Register Patient</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Register Appointment</button>
                 </div>
             </form>
         </div>
     </div>
+
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var calendarEl = document.getElementById('calendar');
-        if (!calendarEl) return;
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/doctorappointments.css" />
+}
 
-        // Compute calendar height depending on screen width
-        function getCalendarHeight() {
-            var w = window.innerWidth;
-            if (w < 576) return 260;   // small mobile
-            if (w < 768) return 300;   // tablet
-            if (w < 992) return 340;   // small desktop
-            return 420;                // full desktop
-        }
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script>
+        window.doctorAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CalendarAppointments));
+    </script>
 
-        // Decide which toolbar buttons to show based on screen width
-        function getRightToolbar() {
-            return (window.innerWidth < 576)
-                ? 'dayGridMonth'
-                : 'dayGridMonth,timeGridWeek,timeGridDay';
-        }
+    <script>
+            window.doctorAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.Schedule.Appointments.Select(a => new
+        {
+            id = a.PatientId ?? Guid.NewGuid().ToString(), // or a unique ID
+            title = a.Title,
+            patientName = a.PatientName,
+            walkInName = a.WalkInName,
+            startDate = a.StartDate.ToString("s"), // ISO string
+            endDate = a.EndDate.ToString("s"),
+            status = a.Status
+        })
+    ));
+    </script>
+    <script src="~/js/doctorappointments.js"></script>
 
-        // Load appointments from Razor model
-        var appointments = [
-    @foreach (var appt in Model.Appointments)
-    {
-        <text>
-                    {
-                           
-                        title: '@($"{appt.Title} - {appt.PatientName}")',
-                        start: '@appt.AppointmentDate.ToString("yyyy-MM-ddTHH:mm")',
-                        end: '@appt.AppointmentDate.AddHours(1).ToString("yyyy-MM-ddTHH:mm")',
-                        extendedProps: {
-                            patient: '@appt.PatientName',
-                            status: '@appt.Status'
-                        }
-                    },
-        </text>
-    }
-        ];
-
-        // Initialize FullCalendar
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            height: getCalendarHeight(),
-            selectable: true,
-            editable: true,
-            nowIndicator: true,
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: getRightToolbar()
-            },
-            events: appointments,
-            select: function (info) {
-                alert('📅 Selected: ' + info.startStr + ' to ' + info.endStr);
-            },
-            eventClick: function (info) {
-                alert(
-                    '👤 Appointment: ' + info.event.title +
-                    '\nPatient: ' + info.event.extendedProps.patient +
-                    '\nStatus: ' + info.event.extendedProps.status
-                );
-            },
-            dateClick: function (info) {
-                alert('📌 Clicked date: ' + info.dateStr);
-            }
-        });
-
-        calendar.render();
-
-        // Recalculate size on window resize
-        var resizeTimeout;
-        window.addEventListener('resize', function () {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(function () {
-                calendar.setOption('height', getCalendarHeight());
-                calendar.setOption('headerToolbar', {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: getRightToolbar()
-                });
-                calendar.updateSize();
-            }, 150);
-        });
-
-        // Handle new appointment form submission
-        document.getElementById('newAppointmentForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            var patientName = document.getElementById('patientName').value;
-            var title = document.getElementById('title').value;
-            var startDate = document.getElementById('startDate').value;
-            var endDate = document.getElementById('endDate').value;
-
-            fetch('/Doctor/CreateAppointment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ PatientName: patientName, Title: title, StartDate: startDate, EndDate: endDate })
-            })
-            .then(response => response.json())
-            .then(data => {
-                calendar.addEvent({
-                    id: data.id,
-                    title: `${data.title} - ${data.patientName}`,
-                    start: data.startDate,
-                    end: data.endDate
-                });
-                bootstrap.Modal.getInstance(document.getElementById('newAppointmentModal')).hide();
-                e.target.reset();
-            })
-            .catch(error => console.error(error));
-        });
-
-        // Expose calendar globally if needed
-        window.doctorCalendar = calendar;
-    });
-</script>
+}

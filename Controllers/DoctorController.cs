@@ -1,14 +1,16 @@
 ﻿using LinkCare_IT15.Data;
+using LinkCare_IT15.Models;
 using LinkCare_IT15.Models.DoctorModel;
 using LinkCare_IT15.Models.Entities;
+using LinkCare_IT15.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -26,9 +28,9 @@ namespace LinkCare_IT15.Controllers
             _userManager = userManager;
         }
 
-        // ======================
-        // Doctor Dashboard
-        // ======================
+         //======================
+         //Doctor Dashboard
+         //======================
         public IActionResult DoctorDashboard()
         {
             var model = new DoctorDashboardModel
@@ -37,11 +39,11 @@ namespace LinkCare_IT15.Controllers
                 TodayAppointments = 5,
                 PendingConsultations = 2,
                 TotalPatients = 48,
-                UpcomingAppointments = new List<DoctorAppointmentViewModel>
-                {
-                    new DoctorAppointmentViewModel { PatientName="John Doe", Title="Routine Checkup", Status="Scheduled"},
-                    new DoctorAppointmentViewModel { PatientName="Jane Smith", Title="Follow-up", Status="Scheduled"}
-                },
+                //UpcomingAppointments = new List<DoctorAppointmentViewModel>
+                //{
+                //    new DoctorAppointmentViewModel { PatientName="John Doe", Title="Routine Checkup", Status="Scheduled"},
+                //    new DoctorAppointmentViewModel { PatientName="Jane Smith", Title="Follow-up", Status="Scheduled"}
+                //},
                 RecentActivity = new List<ActivityViewModel>
                 {
                     new ActivityViewModel { Label="Consultation completed", User="John Doe", Ago=TimeSpan.FromHours(1)},
@@ -50,36 +52,158 @@ namespace LinkCare_IT15.Controllers
             };
             return View(model);
         }
-
-        // ======================
-        // Doctor Appointments
-        // ======================
-        public IActionResult DoctorAppointments()
+        //======================
+        //Doctor Appointments
+        //======================
+        public async Task<IActionResult> DoctorAppointments()
         {
-            // STATIC DATA for demo
-            var model = new DoctorAppointmentsModel
+            var doctorId = _userManager.GetUserId(User);
+            var today = DateTime.Today;
+
+            // All appointments for this doctor
+            var allAppointments = await _context.Appointments
+                .Where(a => a.DoctorId == doctorId)
+                .Include(a => a.Patient)
+                .OrderBy(a => a.StartDate)
+                .ToListAsync();
+
+            // Today's appointments for schedule card
+            var todayAppointments = allAppointments
+                .Where(a => a.StartDate.Date == today)
+                .ToList();
+
+            // Map to AppointmentViewModel for Razor
+            var scheduleVm = new DoctorScheduleViewModel
             {
-                SelectedDate = DateTime.Today,
-                Appointments = new List<DoctorAppointmentViewModel>
+                Appointments = todayAppointments.Select(a => new AppointmentViewModel
                 {
-                    new DoctorAppointmentViewModel {
-                        PatientName = "Patient User",
-                        DoctorName = User.Identity.Name,
-                        AppointmentDate = DateTime.Today.AddHours(9),
-                        Title = "Routine Checkup",
-                        Status = "Scheduled"
-                    },
-                    new DoctorAppointmentViewModel {
-                        PatientName = "Sarah Smith",
-                        DoctorName = User.Identity.Name,
-                        AppointmentDate = DateTime.Today.AddHours(10),
-                        Title = "Follow-up",
-                        Status = "Scheduled"
-                    }
-                }
+                    PatientId = a.PatientId,
+                    PatientName = a.Patient != null
+                        ? $"{a.Patient.FirstName} {a.Patient.LastName}"
+                        : a.WalkInName,
+                    WalkInName = a.WalkInName,
+                    Title = a.Title,
+                    StartDate = a.StartDate,
+                    EndDate = a.EndDate,
+                    Notes = a.Notes,
+                    Status = a.Status.ToString()
+                }).ToList(),
+                NewAppointment = new AppointmentViewModel()
             };
 
+            // Map appointments for FullCalendar
+            var calendarAppointments = allAppointments.Select(a => new
+            {
+                id = a.Id,
+                title = $"{a.Title} - {(a.Patient != null ? $"{a.Patient.FirstName} {a.Patient.LastName}" : a.WalkInName)}",
+                start = a.StartDate.ToString("MM/dd/yyyy HH:mm"),
+                end = a.EndDate.ToString("MM/dd/yyyy HH:mm"),
+                status = a.Status.ToString()
+            }).ToList();
+
+            var model = new DoctorAppointmentsModel
+            {
+                Appointments = allAppointments,
+                Schedule = scheduleVm
+            };
+
+            // Pass JSON to ViewBag for FullCalendar
+            ViewBag.CalendarAppointments = calendarAppointments;
+
             return View(model);
+        }
+
+
+        // ======================
+        // New Appointment
+        // ======================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> NewAppointment(AppointmentViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return await DoctorAppointments(); // reload with errors
+            }
+
+            var doctorId = _userManager.GetUserId(User);
+
+            var appointment = new Appointment
+            {
+                DoctorId = doctorId,
+                PatientId = string.IsNullOrEmpty(model.PatientId) ? null : model.PatientId,
+                WalkInName = string.IsNullOrEmpty(model.PatientId) ? model.PatientName : null,
+                Title = model.Title,
+                StartDate = model.StartDate,
+                EndDate = model.EndDate,
+                Status = AppointmentStatus.Scheduled,
+                Notes = model.Notes,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(DoctorAppointments));
+        }
+
+        // ======================
+        // Create Appointment API
+        // ======================
+        [HttpPost]
+        [Route("Doctor/CreateAppointment")]
+        public async Task<IActionResult> CreateAppointment([FromBody] CreateAppointmentDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Title)
+                || string.IsNullOrWhiteSpace(dto.StartDate) || string.IsNullOrWhiteSpace(dto.EndDate))
+            {
+                return BadRequest("Invalid appointment data.");
+            }
+
+            if (!DateTime.TryParse(dto.StartDate, out var startDate) ||
+                !DateTime.TryParse(dto.EndDate, out var endDate))
+            {
+                return BadRequest("Invalid date format.");
+            }
+
+            var doctorId = _userManager.GetUserId(User);
+
+            string patientName = dto.WalkInName;
+            string patientId = null;
+
+            if (!string.IsNullOrEmpty(dto.PatientId))
+            {
+                var patient = await _userManager.FindByIdAsync(dto.PatientId);
+                if (patient == null)
+                    return BadRequest("Invalid PatientId.");
+
+                patientId = patient.Id;
+                patientName = $"{patient.FirstName} {patient.LastName}";
+            }
+
+            var appointment = new Appointment
+            {
+                DoctorId = doctorId,
+                PatientId = patientId,
+                WalkInName = patientId == null ? dto.WalkInName : null,
+                Title = dto.Title,
+                StartDate = startDate,
+                EndDate = endDate,
+                Status = AppointmentStatus.Scheduled,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                id = appointment.Id,
+                title = $"{appointment.Title}: {patientName}",
+                startDate = appointment.StartDate.ToString("s"),
+                endDate = appointment.EndDate.ToString("s"),
+                patientName
+            });
         }
 
         // ======================
@@ -87,7 +211,6 @@ namespace LinkCare_IT15.Controllers
         // ======================
         public IActionResult DoctorConsultation()
         {
-            // STATIC DATA for demo
             var consultations = new List<ConsultationViewModel>
             {
                 new ConsultationViewModel {
@@ -164,22 +287,6 @@ namespace LinkCare_IT15.Controllers
                         Contact = "0917-222-3333",
                         Status = "Active",
                         LastVisit = DateTime.Today.AddDays(-10)
-                    },
-                    new DoctorPatientViewModel {
-                        PatientName = "Michael Johnson",
-                        Age = 45,
-                        Gender = "Male",
-                        Contact = "0918-555-9999",
-                        Status = "Inactive",
-                        LastVisit = DateTime.Today.AddDays(-60)
-                    },
-                    new DoctorPatientViewModel {
-                        PatientName = "Lisa Rodriguez",
-                        Age = 35,
-                        Gender = "Female",
-                        Contact = "0917-123-4567",
-                        Status = "Active",
-                        LastVisit = DateTime.Today.AddDays(-1)
                     }
                 }
             };
@@ -206,42 +313,11 @@ namespace LinkCare_IT15.Controllers
                     Temperature = "37.0",
                     Weight = "82",
                     Notes = "Patient reports good adherence to medications. Blood pressure well controlled."
-                },
-                new ConsultationViewModel {
-                    PatientName = "Sarah Smith",
-                    DoctorName = User.Identity.Name,
-                    Date = DateTime.Now.AddDays(-25),
-                    ChiefComplaint = "Shortness of breath",
-                    Diagnosis = "Asthma exacerbation",
-                    Prescriptions = new List<string> { "Albuterol as needed", "Prednisone 20mg daily for 5 days" },
-                    BloodPressure = "118/75",
-                    HeartRate = "88",
-                    Temperature = "36.9",
-                    Weight = "61",
-                    Notes = "Patient experienced increased symptoms during high pollen season."
                 }
             };
 
             return View(records);
         }
-
-        // ======================
-        // Register Doctor (Admin)
-        // ======================
-        //[HttpGet]
-        //public IActionResult RegisterDoctor() => View();
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> RegisterDoctor(Doctor model)
-        //{
-        //    // If you don't have a Doctor entity or DbSet, skip DB save
-        //    // _context.Doctors.Add(model);
-        //    // await _context.SaveChangesAsync();
-
-        //    // For demo purposes, just redirect
-        //    return RedirectToAction("DoctorDashboard");
-        //}
 
         // ======================
         // Search Patients API
@@ -262,43 +338,6 @@ namespace LinkCare_IT15.Controllers
                 .ToList();
 
             return Json(results);
-        }
-
-        // ======================
-        // Create Appointment API
-        // ======================
-        public class CreateAppointmentDto
-        {
-            public string PatientName { get; set; }
-            public string Title { get; set; }
-            public string StartDate { get; set; } // ISO string
-            public string EndDate { get; set; }   // ISO string
-        }
-
-        [HttpPost]
-        [Route("Doctor/CreateAppointment")]
-        public async Task<IActionResult> CreateAppointment([FromBody] CreateAppointmentDto dto)
-        {
-            if (dto == null || string.IsNullOrWhiteSpace(dto.PatientName) || string.IsNullOrWhiteSpace(dto.Title)
-                || string.IsNullOrWhiteSpace(dto.StartDate) || string.IsNullOrWhiteSpace(dto.EndDate))
-            {
-                return BadRequest("Invalid appointment data.");
-            }
-
-            if (!DateTime.TryParse(dto.StartDate, out var startDate) ||
-                !DateTime.TryParse(dto.EndDate, out var endDate))
-            {
-                return BadRequest("Invalid date format.");
-            }
-
-            return Json(new
-            {
-                id = Guid.NewGuid().ToString(),
-                title = $"{dto.Title}: {dto.PatientName}",
-                startDate = startDate.ToString("s"),
-                endDate = endDate.ToString("s"),
-                patientName = dto.PatientName
-            });
         }
     }
 }

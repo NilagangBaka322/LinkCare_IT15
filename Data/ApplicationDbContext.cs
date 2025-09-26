@@ -1,4 +1,5 @@
-﻿using LinkCare_IT15.Models.Entities;
+﻿using LinkCare_IT15.Models;
+using LinkCare_IT15.Models.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,8 @@ namespace LinkCare_IT15.Data
 
        
         public DbSet<Consultation> Consultations { get; set; }  // ✅ singular
+        public DbSet<Appointment> Appointments { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -27,6 +30,18 @@ namespace LinkCare_IT15.Data
                 .WithMany(u => u.ConsultationsAsPatient)
                 .HasForeignKey(c => c.PatientId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Appointment>()
+                .HasOne(a => a.Patient)
+                .WithMany()
+                .HasForeignKey(a => a.PatientId)
+                .OnDelete(DeleteBehavior.Restrict); 
+
+            builder.Entity<Appointment>()
+                .HasOne(a => a.Doctor)
+                .WithMany()
+                .HasForeignKey(a => a.DoctorId)
+                .OnDelete(DeleteBehavior.Restrict); 
         }
 
     }

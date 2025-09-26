@@ -1,0 +1,176 @@
+﻿/* wwwroot/css/doctorappointments.css */
+
+/* Compact & responsive layout */
+.lc-card {
+    padding: 1rem !important;
+}
+
+/* Calendar container */
+#calendar {
+    min-height: 300px;
+    max-height: 500px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* FullCalendar base */
+.fc {
+    font-size: 0.85rem;
+}
+
+.fc-toolbar-title {
+    font-size: 1rem !important;
+    font-weight: 600;
+}
+
+.fc-button {
+    padding: 0.25rem 0.4rem !important;
+    font-size: 0.8rem !important;
+}
+#patientDropdown {
+    max-height: 200px;
+    overflow-y: auto;
+    position: absolute;
+    z-index: 1055; /* above modal */
+    display: none;
+}
+
+    #patientDropdown.show {
+        display: block;
+    }
+
+    #patientDropdown button.dropdown-item {
+        text-align: left;
+        white-space: normal;
+    }
+
+/* Schedule list */
+.list-group {
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.list-group-item {
+    padding: 0.45rem 0.6rem !important;
+    font-size: 0.9rem;
+}
+
+    .list-group-item small {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+/* Modal compactness */
+.modal-body .mb-3 {
+    margin-bottom: 0.6rem !important;
+}
+
+.modal-footer {
+    padding: 0.5rem 1rem !important;
+}
+
+/* Desktop adjustments (≥992px) */
+@media (min-width: 992px) {
+    #calendar {
+        min-height: 350px;
+        max-height: 450px;
+    }
+}
+
+/* Tablets & smaller (<992px) */
+@media (max-width: 991.98px) {
+    /* Stack calendar above schedule */
+    #calendar-col {
+        order: 1;
+    }
+
+    #schedule-col {
+        order: 2;
+        margin-top: 1rem;
+    }
+
+    /* Adjust font sizes */
+    #calendar {
+        min-height: 280px;
+        max-height: 380px;
+    }
+
+    .fc {
+        font-size: 0.8rem;
+    }
+
+    .fc-toolbar-title {
+        font-size: 0.9rem !important;
+    }
+
+    .fc-button {
+        font-size: 0.76rem !important;
+        padding: 0.25rem 0.4rem !important;
+    }
+
+    .list-group-item {
+        font-size: 0.85rem;
+    }
+
+        .list-group-item small {
+            font-size: 0.72rem;
+        }
+}
+
+
+/* Small tablets & large phones (<768px) */
+@media (max-width: 767.98px) {
+    #calendar {
+        min-height: 220px;
+        max-height: 300px;
+    }
+
+    .fc {
+        font-size: 0.75rem;
+    }
+
+    .fc-toolbar-title {
+        font-size: 0.85rem !important;
+    }
+
+    .fc-button {
+        font-size: 0.7rem !important;
+        padding: 0.2rem 0.35rem !important;
+    }
+
+    .row > .col-lg-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+
+/* Small phones (<576px) */
+@media (max-width: 575.98px) {
+    #calendar {
+        min-height: 200px;
+        max-height: 260px;
+    }
+
+    .fc {
+        font-size: 0.7rem;
+    }
+
+    .fc-toolbar-title {
+        font-size: 0.8rem !important;
+    }
+
+    .fc-button {
+        font-size: 0.65rem !important;
+        padding: 0.18rem 0.3rem !important;
+    }
+
+    .list-group-item {
+        font-size: 0.8rem;
+    }
+
+        .list-group-item small {
+            font-size: 0.7rem;
+        }
+}
