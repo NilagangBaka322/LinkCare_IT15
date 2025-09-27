@@ -59,11 +59,16 @@ namespace LinkCare_IT15.Models
     // =======================
     public class AppointmentViewModel
     {
+        public int Id { get; set; }
 
-        public int Id { get; set; } 
+        // For registered patients
+        public string? PatientId { get; set; }
+
+        // For walk-in patients
+        public string? WalkInName { get; set; }
 
         [Required]
-        public string PatientId { get; set; }
+        public string Title { get; set; }
 
         [Required]
         public DateTime StartDate { get; set; }
@@ -71,23 +76,18 @@ namespace LinkCare_IT15.Models
         [Required]
         public DateTime EndDate { get; set; }
 
-        [Required]
-        public string Title { get; set; }
+        public string? Notes { get; set; }
 
-        public string Notes { get; set; }
-
-        // Walk-in patient support
-        public string WalkInName { get; set; }
-
-        // Combined patient name for display
-        public string PatientName { get; set; }
-
-        // Appointment status
         public string Status { get; set; } = "Scheduled";
 
-        // For dropdowns
+        // For display
+        public string? PatientName { get; set; }
+
+        // Dropdown
         public List<SelectListItem> Patients { get; set; } = new();
     }
+
+
     public class CreateAppointmentDto
     {
         public string Title { get; set; }

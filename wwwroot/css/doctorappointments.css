@@ -183,4 +183,9 @@
         display: block !important;
     }
 
+    .swal2-popup.swal-smaller {
+        font-size: 0.85rem !important;
+        padding: 15px !important;
+    }
+
 }

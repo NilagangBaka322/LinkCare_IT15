@@ -28,7 +28,12 @@
                 }
             })),
             eventClick: info => {
-                alert(`👤 Appointment: ${info.event.title}\nPatient: ${info.event.extendedProps.patient}\nStatus: ${info.event.extendedProps.status}`);
+                Swal.fire({
+                    title: info.event.title,
+                    html: `<b>Patient:</b> ${info.event.extendedProps.patient}<br/>
+                           <b>Status:</b> ${info.event.extendedProps.status}`,
+                    icon: "info"
+                });
             }
         });
         calendar.render();
@@ -52,28 +57,15 @@
     // ======================
     const registeredContainer = document.getElementById('registeredPatientContainer');
     const walkinContainer = document.getElementById('walkinPatientContainer');
-    const patientInput = document.getElementById('patientName');
-    const firstNameInput = document.getElementById('walkinFirstName');
-    const lastNameInput = document.getElementById('walkinLastName');
-    const patientDropdown = document.getElementById('patientDropdown');
 
     function togglePatientFields() {
         const selected = document.querySelector('input[name="patientType"]:checked')?.value || 'registered';
         if (selected === 'registered') {
             registeredContainer.classList.remove('d-none');
             walkinContainer.classList.add('d-none');
-            patientInput.readOnly = false;
-            firstNameInput.readOnly = true;
-            lastNameInput.readOnly = true;
-            firstNameInput.value = '';
-            lastNameInput.value = '';
         } else {
             registeredContainer.classList.add('d-none');
             walkinContainer.classList.remove('d-none');
-            patientInput.readOnly = true;
-            patientInput.value = '';
-            firstNameInput.readOnly = false;
-            lastNameInput.readOnly = false;
         }
     }
 
@@ -81,114 +73,82 @@
     togglePatientFields();
 
     // ======================
-    // Autocomplete Search
+    // Form Submission
     // ======================
-    let debounceTimer;
-    function debounce(func, delay) {
-        return (...args) => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => func.apply(this, args), delay);
-        };
-    }
+    const form = document.getElementById("newAppointmentForm");
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
 
-    async function searchPatients(query) {
-        if (!query || query.length < 2) {
-            patientDropdown.classList.remove('show');
+        const patientType = document.querySelector('input[name="patientType"]:checked').value;
+        const title = document.getElementById("title").value.trim();
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+
+        let patientId = null;
+        let walkInName = null;
+
+        if (patientType === "registered") {
+            // ⚠️ Make sure your dropdown has id="patientId"
+            patientId = document.getElementById("patientId").value;
+            if (!patientId) {
+                Swal.fire("⚠️ Error", "Please select a registered patient.", "error");
+                return;
+            }
+        } else {
+            const first = document.getElementById("walkinFirstName").value.trim();
+            const last = document.getElementById("walkinLastName").value.trim();
+            if (!first || !last) {
+                Swal.fire("⚠️ Error", "Please enter both first and last name for walk-in patient.", "error");
+                return;
+            }
+            walkInName = first + " " + last;
+        }
+
+        if (!title || !startDate || !endDate) {
+            Swal.fire("⚠️ Error", "Please fill in all required fields.", "error");
             return;
         }
 
-        try {
-            const res = await fetch('/Doctor/SearchPatients?query=' + encodeURIComponent(query));
-            if (!res.ok) return;
-            const list = await res.json();
-            patientDropdown.innerHTML = '';
-
-            if (Array.isArray(list) && list.length) {
-                list.forEach(p => {
-                    const fullName = `${p.firstName} ${p.lastName}`;
-                    const item = document.createElement('button');
-                    item.type = 'button';
-                    item.className = 'dropdown-item';
-                    item.innerHTML = `<strong>${fullName}</strong> <small class="text-muted">${p.contact || ''}</small>`;
-                    item.addEventListener('click', () => {
-                        patientInput.value = fullName;
-                        patientInput.dataset.patientId = p.id;
-                        patientDropdown.classList.remove('show');
-                    });
-                    patientDropdown.appendChild(item);
-                });
-                patientDropdown.classList.add('show');
-            } else {
-                patientDropdown.classList.remove('show');
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
-    patientInput.addEventListener('input', debounce(e => searchPatients(e.target.value.trim()), 250));
-
-    item.addEventListener('click', () => {
-        patientInput.value = fullName;
-        patientInput.dataset.patientId = p.id; // must match controller
-        patientDropdown.classList.remove('show');
-    });
-    // ======================
-    // Form Submission
-    // ======================
-    const form = document.getElementById('newAppointmentForm');
-    if (form) {
-        form.addEventListener('submit', async e => {
-            e.preventDefault();
-
-            const patientType = document.querySelector('input[name="patientType"]:checked')?.value || 'registered';
-            let patientId = null, walkinName = null;
-
-            if (patientType === 'registered') {
-                patientId = patientInput.dataset.patientId || null;
-            } else {
-                walkinName = `${firstNameInput.value.trim()} ${lastNameInput.value.trim()}`.trim();
-            }
-
-            const title = document.getElementById('title').value.trim();
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-
-            if (!title || !startDate || !endDate) {
-                alert('Please fill in all required fields.');
-                return;
-            }
-
-            const payload = { PatientId: patientId, WalkInName: walkinName, Title: title, StartDate: startDate, EndDate: endDate };
-
-            try {
-                const res = await fetch('/Doctor/CreateAppointment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!res.ok) throw new Error('Server error');
-
-                const data = await res.json();
-                const displayName = walkinName || data.patientName;
-
-                window.doctorCalendar?.addEvent({
-                    id: data.id || String(Math.random()),
-                    title: `${title} - ${displayName}`,
-                    start: startDate,
-                    end: endDate,
-                    extendedProps: { patient: displayName, status: data.status || 'Scheduled' }
-                });
-
-                form.reset();
-                delete patientInput.dataset.patientId;
-                togglePatientFields();
-                bootstrap.Modal.getInstance(document.getElementById('newAppointmentModal'))?.hide();
-
-            } catch (err) {
-                console.error(err);
-                alert('Failed to create appointment.');
+        Swal.fire({
+            title: "Confirm Appointment",
+            html: `
+            <p><b>Patient:</b> ${patientType === "registered" ? patientId : walkInName}</p>
+            <p><b>Title:</b> ${title}</p>
+            <p><b>Start:</b> ${startDate}</p>
+            <p><b>End:</b> ${endDate}</p>
+        `,
+            width: 400, // smaller message box
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonText: "Confirm & Save",
+            cancelButtonText: "Cancel"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch("/Doctor/CreateAppointment", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": document.querySelector("input[name='__RequestVerificationToken']")?.value
+                    },
+                    body: JSON.stringify({
+                        title,
+                        startDate,
+                        endDate,
+                        patientId,
+                        walkInName
+                    })
+                })
+                    .then(r => {
+                        if (!r.ok) throw new Error("Failed to save");
+                        return r.json();
+                    })
+                    .then(data => {
+                        Swal.fire("✅ Success", "Appointment registered!", "success");
+                        bootstrap.Modal.getInstance(document.getElementById("newAppointmentModal")).hide();
+                        location.reload();
+                    })
+                    .catch(err => Swal.fire("❌ Error", err.message, "error"));
             }
         });
-    }
+    });
 });

@@ -174,38 +174,58 @@ namespace LinkCare_IT15.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAppointment([FromBody] CreateAppointmentDto dto)
         {
-            if (dto == null) return BadRequest();
+            if (string.IsNullOrWhiteSpace(dto.Title) ||
+                string.IsNullOrWhiteSpace(dto.StartDate) ||
+                string.IsNullOrWhiteSpace(dto.EndDate))
+            {
+                return BadRequest("Missing required fields.");
+            }
 
-            var doctorId = _userManager.GetUserId(User);
+            // Ensure at least one type of patient is provided
+            if (string.IsNullOrWhiteSpace(dto.PatientId) && string.IsNullOrWhiteSpace(dto.WalkInName))
+            {
+                return BadRequest("Either PatientId or WalkInName must be provided.");
+            }
 
             var appointment = new Appointment
             {
-                Title = dto.Title,
+                Title = dto.Title.Trim(),
                 StartDate = DateTime.Parse(dto.StartDate),
                 EndDate = DateTime.Parse(dto.EndDate),
-                DoctorId = doctorId,
-                PatientId = string.IsNullOrEmpty(dto.PatientId) ? null : dto.PatientId,
-                WalkInName = dto.WalkInName,
-                Status = AppointmentStatus.Scheduled,
-                CreatedAt = DateTime.Now
+                DoctorId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                Status = AppointmentStatus.Scheduled
             };
+
+            if (!string.IsNullOrEmpty(dto.PatientId))
+            {
+                appointment.PatientId = dto.PatientId;
+            }
+            else
+            {
+                appointment.WalkInName = dto.WalkInName?.Trim();
+            }
 
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
 
-            var patientName = appointment.PatientId != null
-                ? (await _context.Users.FindAsync(appointment.PatientId))?.FirstName + " " +
-                  (await _context.Users.FindAsync(appointment.PatientId))?.LastName
-                : null;
+            var savedAppointment = await _context.Appointments
+                .Include(a => a.Patient)
+                .FirstOrDefaultAsync(a => a.Id == appointment.Id);
 
             return Json(new
             {
-                id = appointment.Id,
-                patientName,
-                appointment.WalkInName,
-                appointment.Status
+                id = savedAppointment.Id,
+                title = savedAppointment.Title,
+                patientName = savedAppointment.Patient != null
+                                ? (savedAppointment.Patient.FirstName + " " + savedAppointment.Patient.LastName).Trim()
+                                : null,
+                walkInName = savedAppointment.WalkInName,
+                startDate = savedAppointment.StartDate.ToString("s"),
+                endDate = savedAppointment.EndDate.ToString("s"),
+                status = savedAppointment.Status.ToString()
             });
         }
+
 
         //======================
         // Doctor Consultation

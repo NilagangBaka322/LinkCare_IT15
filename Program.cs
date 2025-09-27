@@ -3,6 +3,7 @@ using LinkCare_IT15.Data;
 using LinkCare_IT15.Models.Entities;
 using LinkCare_IT15.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -33,6 +34,7 @@ builder.Services.AddRazorPages(); // ✅ Add Razor Pages support
 // -------------------- SERVICES --------------------
 builder.Services.AddScoped<RecaptchaService>();
 builder.Services.AddHttpClient();
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // -------------------- SESSION --------------------
 builder.Services.AddDistributedMemoryCache();
