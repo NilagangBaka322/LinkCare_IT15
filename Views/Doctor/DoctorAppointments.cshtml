@@ -41,7 +41,7 @@
                         ? appt.WalkInName
                         : "Unknown";
 
-                        string statusText = appt.Status.ToString().ToLowerInvariant();
+                        string statusText = appt.Status?.ToLower() ?? "scheduled";
                         string badgeClass = statusText switch
                         {
                             "completed" => "bg-success-subtle text-success",
@@ -64,7 +64,6 @@
                     }
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -94,11 +93,17 @@
                     </div>
 
                     <!-- Registered Patient Search -->
-                    <div class="mb-3 position-relative" id="registeredPatientContainer">
+                    <div class="mb-3" id="registeredPatientContainer">
                         <label class="form-label">Select Registered Patient</label>
-                        <input type="text" id="patientName" class="form-control" placeholder="Search patient..." autocomplete="off">
-                        <ul id="patientDropdown" class="dropdown-menu w-100" style="max-height: 200px; overflow-y:auto;"></ul>
+                        <select id="patientId" class="form-select">
+                            <option value="">-- Select Patient --</option>
+                            @foreach (var p in Model.Schedule.Patients)
+                            {
+                                <option value="@p.Value">@(string.IsNullOrEmpty(p.Text) ? "[No Name]" : p.Text)</option>
+                            }
+                        </select>
                     </div>
+
 
                     <!-- Walk-in Patient -->
                     <div id="walkinPatientContainer" class="d-none">
@@ -136,7 +141,6 @@
             </form>
         </div>
     </div>
-
 </div>
 
 @section Styles {
@@ -146,24 +150,22 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-    <script>
-        window.doctorAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CalendarAppointments));
-    </script>
 
     <script>
-            window.doctorAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        // Pass server-side appointments to JS
+        window.doctorAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
         Model.Schedule.Appointments.Select(a => new
         {
-            id = a.PatientId ?? Guid.NewGuid().ToString(), // or a unique ID
+            id = a.Id,
             title = a.Title,
             patientName = a.PatientName,
             walkInName = a.WalkInName,
-            startDate = a.StartDate.ToString("s"), // ISO string
+            startDate = a.StartDate.ToString("s"),
             endDate = a.EndDate.ToString("s"),
             status = a.Status
         })
     ));
     </script>
-    <script src="~/js/doctorappointments.js"></script>
 
+    <script src="~/js/doctorappointments.js"></script>
 }

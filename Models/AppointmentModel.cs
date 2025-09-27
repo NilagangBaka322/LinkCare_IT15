@@ -59,6 +59,9 @@ namespace LinkCare_IT15.Models
     // =======================
     public class AppointmentViewModel
     {
+
+        public int Id { get; set; } 
+
         [Required]
         public string PatientId { get; set; }
 

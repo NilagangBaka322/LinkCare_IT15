@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LinkCare_IT15.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250926172612_CreateAppointmentTable")]
+    [Migration("20250927122549_CreateAppointmentTable")]
     partial class CreateAppointmentTable
     {
         /// <inheritdoc />

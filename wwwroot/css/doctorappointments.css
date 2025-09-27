@@ -173,4 +173,14 @@
         .list-group-item small {
             font-size: 0.7rem;
         }
+
+    #patientDropdown.show {
+        display: block;
+        position: absolute;
+        z-index: 2000; /* ensure it's above the modal */
+    }
+    #patientDropdown.show {
+        display: block !important;
+    }
+
 }
