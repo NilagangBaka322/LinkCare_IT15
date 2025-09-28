@@ -45,11 +45,17 @@
                         string badgeClass = statusText switch
                         {
                             "completed" => "bg-success-subtle text-success",
+                            "rescheduled" => "bg-warning-subtle text-warning",
                             "cancelled" => "bg-danger-subtle text-danger",
                             _ => "bg-primary-subtle text-primary"
                         };
 
-                        <div class="list-group-item d-flex justify-content-between align-items-start mb-2 rounded shadow-sm">
+                        <div class="list-group-item d-flex justify-content-between align-items-start mb-2 rounded shadow-sm schedule-item"
+                             data-id="@appt.Id"
+                             data-patient="@displayName"
+                             data-title="@appt.Title"
+                             data-start="@appt.StartDate.ToString("s")"
+                             data-status="@statusText">
                             <div>
                                 <div class="fw-semibold text-primary">
                                     <i class="bi bi-clock me-1"></i>@appt.StartDate.ToString("HH:mm")
@@ -61,6 +67,8 @@
                                 @statusText
                             </span>
                         </div>
+
+
                     }
                 </div>
             </div>
@@ -91,6 +99,7 @@
                             </div>
                         </div>
                     </div>
+                  
 
                     <!-- Registered Patient Search -->
                     <div class="mb-3" id="registeredPatientContainer">
@@ -139,6 +148,32 @@
                     <button type="submit" class="btn btn-primary">Register Appointment</button>
                 </div>
             </form>
+        </div>
+    </div>
+    <!-- Reschedule Modal -->
+    <div class="modal fade" id="rescheduleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reschedule Appointment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><b>Patient:</b> <span id="reschedPatient"></span></p>
+                    <p><b>Title:</b> <span id="reschedTitle"></span></p>
+                    <p><b>Status:</b> <span id="reschedStatus"></span></p>
+
+                    <div class="mb-3">
+                        <label for="reschedDate" class="form-label">New Date & Time</label>
+                        <input type="datetime-local" id="reschedDate" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" id="cancelScheduleBtn">Cancel Schedule</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" id="confirmRescheduleBtn">Save Changes</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>

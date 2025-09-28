@@ -11,7 +11,8 @@ namespace LinkCare_IT15.Models
     {
         Scheduled,
         Completed,
-        Cancelled
+        Cancelled,
+        Rescheduled
     }
 
     // =======================
@@ -95,6 +96,10 @@ namespace LinkCare_IT15.Models
         public string EndDate { get; set; }     // same here
         public string PatientId { get; set; }
         public string WalkInName { get; set; }
+    }
+    public class RescheduleDto
+    {
+        public string NewDate { get; set; }
     }
 
 }

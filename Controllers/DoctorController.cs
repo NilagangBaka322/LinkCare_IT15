@@ -142,6 +142,41 @@ namespace LinkCare_IT15.Controllers
             return View(model);
         }
 
+        //Resched Appt
+        public async Task<IActionResult> RescheduleAppointment(int id, [FromBody] RescheduleDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.NewDate))
+                return BadRequest("Invalid date.");
+
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment == null)
+                return NotFound();
+
+            // Update appointment
+            appointment.StartDate = DateTime.Parse(dto.NewDate);
+            appointment.Status = AppointmentStatus.Rescheduled;
+            appointment.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, newStatus = appointment.Status.ToString() });
+        }
+
+        //Cancel Appt
+        public IActionResult CancelAppointment(int id)
+        {
+            var appt = _context.Appointments.FirstOrDefault(a => a.Id == id);
+            if (appt == null)
+            {
+                return Json(new { success = false, message = "Appointment not found" });
+            }
+
+            appt.Status = AppointmentStatus.Cancelled;
+            _context.SaveChanges();
+
+            return Json(new { success = true });
+        }
+
         // 🔍 Search Patients (for autocomplete)
         [HttpGet]
         public async Task<IActionResult> SearchPatients(string query)
