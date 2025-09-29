@@ -12,12 +12,4 @@
             Please check your inbox (and spam folder) and confirm your account before logging in.
         </p>
 
-        @if (Model.DisplayConfirmAccountLink)
-        {
-            <div class="alert alert-warning mt-3">
-                (Development Mode) Confirm your account here:
-                <a class="btn btn-sm btn-primary" href="@Model.EmailConfirmationUrl">Confirm Email</a>
-            </div>
-        }
-    </div>
 </div>
