@@ -34,7 +34,7 @@ builder.Services.AddRazorPages(); // ✅ Add Razor Pages support
 // -------------------- SERVICES --------------------
 builder.Services.AddScoped<RecaptchaService>();
 builder.Services.AddHttpClient();
-builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
 // -------------------- SESSION --------------------
 builder.Services.AddDistributedMemoryCache();
