@@ -1,4 +1,5 @@
-﻿@model LinkCare_IT15.Models.DoctorModel.DoctorConsultationPageViewModel
+﻿@model LinkCare_IT15.Models.ViewModels.DoctorConsultationViewModel
+
 @using System.Security.Claims
 
 @{
@@ -23,42 +24,27 @@
         </div>
     </div>
 
-    <!-- Card -->
+    <!-- Consultation Records -->
     <div class="lc-card p-4">
         <h5 class="mb-3">Consultation Records</h5>
         <p class="text-muted">Your recorded consultations with patients</p>
 
-        <!-- Records List -->
-        <div class="list-group">
-            @if (Model.Consultations != null && Model.Consultations.Any())
+        @if (Model.Consultations != null && Model.Consultations.Any())
+        {
+            foreach (var consult in Model.Consultations)
             {
-                foreach (var consult in Model.Consultations)
-                {
-                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="fw-bold">@consult.PatientName</div>
-                            <div class="small text-muted">
-                                Dr. @consult.DoctorName • @consult.Date.ToString("yyyy-MM-dd")
-                                • @consult.Diagnosis
-                            </div>
-                            <div class="small">
-                                <strong>BP:</strong> @consult.BloodPressure |
-                                <strong>HR:</strong> @consult.HeartRate |
-                                <strong>Temp:</strong> @consult.Temperature |
-                                <strong>Weight:</strong> @consult.Weight
-                            </div>
-                        </div>
-                        <i class="bi bi-chevron-right text-muted"></i>
-                    </a>
-                }
-            }
-            else
-            {
-                <div class="text-center text-muted p-4">
-                    No consultations found.
+                <div class="list-group-item">
+                    <strong>@(consult.Patient?.FullName ?? "Walk-in")</strong><br />
+                    <small>
+                        Dr. @(consult.Doctor?.FullName ?? "Unknown") • @consult.Date.ToString("yyyy-MM-dd") • @consult.Diagnosis
+                    </small>
                 </div>
             }
-        </div>
+        }
+        else
+        {
+            <div class="text-center text-muted p-4">No consultations found.</div>
+        }
     </div>
 </div>
 
@@ -73,47 +59,56 @@
 
             <form asp-action="AddConsultation" method="post">
                 <!-- Hidden fields -->
-                <input type="hidden" asp-for="NewConsultation.DoctorId" value="@User.FindFirstValue(ClaimTypes.NameIdentifier)" />
-                <input type="hidden" asp-for="NewConsultation.PatientId" id="PatientId" value="0" />
+                <input type="hidden" name="DoctorId" value="@User.FindFirstValue(ClaimTypes.NameIdentifier)" />
 
-                <!-- Patient info -->
+                <!-- Patient (manual entry for now, later can be dropdown/search) -->
                 <div class="mb-3">
-                    <label class="form-label">Patient Name *</label>
-                    <input type="text" class="form-control" asp-for="NewConsultation.PatientName" placeholder="Patient Name" required />
+                    <label class="form-label">Patient ID</label>
+                    <input type="text" class="form-control" name="PatientId" placeholder="Enter Patient ID (optional)" />
                 </div>
 
-                <!-- Consultation details -->
+                <!-- Chief Complaint -->
                 <div class="mb-3">
                     <label class="form-label">Chief Complaint *</label>
-                    <textarea class="form-control" asp-for="NewConsultation.ChiefComplaint" placeholder="Chief Complaint" required></textarea>
+                    <textarea class="form-control" name="ChiefComplaint" placeholder="Chief Complaint" required></textarea>
                 </div>
+
+                <!-- Diagnosis -->
                 <div class="mb-3">
                     <label class="form-label">Diagnosis *</label>
-                    <textarea class="form-control" asp-for="NewConsultation.Diagnosis" placeholder="Diagnosis" required></textarea>
+                    <textarea class="form-control" name="Diagnosis" placeholder="Diagnosis" required></textarea>
                 </div>
 
                 <!-- Prescriptions -->
                 <div id="prescriptionsContainer" class="mb-3">
-                    <input type="text" class="form-control mb-2" name="NewConsultation.Prescriptions" placeholder="Prescription 1" />
+                    <input type="text" class="form-control mb-2" name="Prescriptions" placeholder="Prescription 1" />
                 </div>
-                <button type="button" id="addPrescriptionBtn" class="btn btn-sm btn-outline-secondary mb-3">Add Prescription</button>
+                <button type="button" id="addPrescriptionBtn" class="btn btn-sm btn-outline-secondary mb-3">
+                    Add Prescription
+                </button>
+
+                <!-- Notes -->
+                <div class="mb-3">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-control" name="Notes" placeholder="Additional notes"></textarea>
+                </div>
 
                 <!-- Vitals -->
                 <div class="mb-3">
                     <label class="form-label">Blood Pressure</label>
-                    <input type="text" class="form-control" asp-for="NewConsultation.BloodPressure" placeholder="Blood Pressure" />
+                    <input type="text" class="form-control" name="BloodPressure" placeholder="Blood Pressure" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Heart Rate</label>
-                    <input type="text" class="form-control" asp-for="NewConsultation.HeartRate" placeholder="Heart Rate" />
+                    <input type="text" class="form-control" name="HeartRate" placeholder="Heart Rate" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Temperature</label>
-                    <input type="text" class="form-control" asp-for="NewConsultation.Temperature" placeholder="Temperature" />
+                    <input type="text" class="form-control" name="Temperature" placeholder="Temperature" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Weight</label>
-                    <input type="text" class="form-control" asp-for="NewConsultation.Weight" placeholder="Weight" />
+                    <input type="text" class="form-control" name="Weight" placeholder="Weight" />
                 </div>
 
                 <button type="submit" class="btn btn-primary">Save Consultation</button>
@@ -126,15 +121,14 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Dynamic prescriptions
             const addPrescriptionBtn = document.getElementById("addPrescriptionBtn");
             const prescriptionsContainer = document.getElementById("prescriptionsContainer");
 
             addPrescriptionBtn?.addEventListener("click", function () {
-                const count = prescriptionsContainer.children.length + 1;
+                const count = prescriptionsContainer.querySelectorAll("input").length + 1;
                 const input = document.createElement("input");
                 input.type = "text";
-                input.name = "NewConsultation.Prescriptions";
+                input.name = "Prescriptions";
                 input.className = "form-control mb-2";
                 input.placeholder = "Prescription " + count;
                 prescriptionsContainer.appendChild(input);

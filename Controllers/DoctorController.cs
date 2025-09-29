@@ -27,9 +27,12 @@ namespace LinkCare_IT15.Controllers
             _context = context;
             _userManager = userManager;
         }
+
+        // ======================
+        // Index / Schedule
+        // ======================
         public async Task<IActionResult> Index()
         {
-            // Get patients only
             var patients = await (from u in _context.Users
                                   join ur in _context.UserRoles on u.Id equals ur.UserId
                                   join r in _context.Roles on ur.RoleId equals r.Id
@@ -38,10 +41,9 @@ namespace LinkCare_IT15.Controllers
                                   {
                                       Value = u.Id,
                                       Text = string.IsNullOrEmpty(u.FirstName) && string.IsNullOrEmpty(u.LastName)
-                                             ? u.UserName // fallback if names are empty
+                                             ? u.UserName
                                              : (u.FirstName + " " + u.LastName).Trim()
                                   }).ToListAsync();
-
 
             var appointments = await _context.Appointments
                 .Include(a => a.Patient)
@@ -69,9 +71,10 @@ namespace LinkCare_IT15.Controllers
 
             return View("DoctorAppointments", vm);
         }
-        //======================
+
+        // ======================
         // Doctor Dashboard
-        //======================
+        // ======================
         public IActionResult DoctorDashboard()
         {
             var model = new DoctorDashboardModel
@@ -89,16 +92,13 @@ namespace LinkCare_IT15.Controllers
             return View(model);
         }
 
-        //======================
+        // ======================
         // Doctor Appointments
-        //======================
-        // In DoctorController
+        // ======================
         public async Task<IActionResult> DoctorAppointments()
         {
-            // Get current logged-in doctor
             var doctorId = _userManager.GetUserId(User);
 
-            // Get all patients in role Patient
             var patientRoleId = await _context.Roles
                 .Where(r => r.Name == "Patient")
                 .Select(r => r.Id)
@@ -106,14 +106,13 @@ namespace LinkCare_IT15.Controllers
 
             var patients = await _context.Users
                 .Where(u => _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == patientRoleId))
-                .Select(u => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                .Select(u => new SelectListItem
                 {
                     Value = u.Id,
                     Text = u.FirstName + " " + u.LastName
                 })
                 .ToListAsync();
 
-            // Load doctor's appointments
             var appointments = await _context.Appointments
                 .Include(a => a.Patient)
                 .Where(a => a.DoctorId == doctorId && !a.IsArchived)
@@ -142,7 +141,9 @@ namespace LinkCare_IT15.Controllers
             return View(model);
         }
 
-        //Resched Appt
+        // ======================
+        // Appointment Actions
+        // ======================
         public async Task<IActionResult> RescheduleAppointment(int id, [FromBody] RescheduleDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.NewDate))
@@ -152,32 +153,25 @@ namespace LinkCare_IT15.Controllers
             if (appointment == null)
                 return NotFound();
 
-            // Update appointment
             appointment.StartDate = DateTime.Parse(dto.NewDate);
             appointment.Status = AppointmentStatus.Rescheduled;
             appointment.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
-
             return Json(new { success = true, newStatus = appointment.Status.ToString() });
         }
 
-        //Cancel Appt
         public IActionResult CancelAppointment(int id)
         {
             var appt = _context.Appointments.FirstOrDefault(a => a.Id == id);
             if (appt == null)
-            {
                 return Json(new { success = false, message = "Appointment not found" });
-            }
 
             appt.Status = AppointmentStatus.Cancelled;
             _context.SaveChanges();
-
             return Json(new { success = true });
         }
 
-        // 🔍 Search Patients (for autocomplete)
         [HttpGet]
         public async Task<IActionResult> SearchPatients(string query)
         {
@@ -205,7 +199,6 @@ namespace LinkCare_IT15.Controllers
             return Json(patients);
         }
 
-        // ➕ Create Appointment
         [HttpPost]
         public async Task<IActionResult> CreateAppointment([FromBody] CreateAppointmentDto dto)
         {
@@ -216,11 +209,8 @@ namespace LinkCare_IT15.Controllers
                 return BadRequest("Missing required fields.");
             }
 
-            // Ensure at least one type of patient is provided
             if (string.IsNullOrWhiteSpace(dto.PatientId) && string.IsNullOrWhiteSpace(dto.WalkInName))
-            {
                 return BadRequest("Either PatientId or WalkInName must be provided.");
-            }
 
             var appointment = new Appointment
             {
@@ -232,13 +222,9 @@ namespace LinkCare_IT15.Controllers
             };
 
             if (!string.IsNullOrEmpty(dto.PatientId))
-            {
                 appointment.PatientId = dto.PatientId;
-            }
             else
-            {
                 appointment.WalkInName = dto.WalkInName?.Trim();
-            }
 
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
@@ -261,58 +247,32 @@ namespace LinkCare_IT15.Controllers
             });
         }
 
-
-        //======================
+        // ======================
         // Doctor Consultation
         //======================
-        public IActionResult DoctorConsultation()
-        {
-            return View(new List<ConsultationViewModel>());
-        }
+        
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddConsultation(ConsultationViewModel model)
-        {
-            if (!ModelState.IsValid) return View(model);
-
-            var doctorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            var consultation = new Consultation
-            {
-                PatientId = string.IsNullOrEmpty(model.PatientId) ? null : model.PatientId,
-                DoctorId = doctorId,
-                ChiefComplaint = model.ChiefComplaint,
-                Diagnosis = model.Diagnosis,
-                Prescriptions = model.Prescriptions != null ? string.Join(",", model.Prescriptions) : null,
-                Notes = model.Notes,
-                BloodPressure = model.BloodPressure,
-                HeartRate = model.HeartRate,
-                Temperature = model.Temperature,
-                Weight = model.Weight,
-                Date = DateTime.Now
-            };
-
-            _context.Consultations.Add(consultation);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("DoctorConsultation");
-        }
-
-        //======================
+        // ======================
         // Doctor Patients
-        //======================
+        // ======================
         public IActionResult DoctorPatients()
         {
             return View(new DoctorPatientsModel { Patients = new List<DoctorPatientViewModel>() });
         }
 
-        //======================
+        // ======================
         // Doctor Medical Records
-        //======================
-        public IActionResult DoctorMedicalRecords()
+        // ======================
+        public async Task<IActionResult> DoctorMedicalRecords()
         {
-            return View(new List<ConsultationViewModel>());
+            var doctorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var consultations = await _context.Consultations
+                .Include(c => c.Patient)
+                .Where(c => c.DoctorId == doctorId)
+                .ToListAsync();
+
+            return View(consultations);
         }
     }
 }

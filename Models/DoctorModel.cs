@@ -100,10 +100,5 @@ namespace LinkCare_IT15.Models.DoctorModel
     }
 
 
-    public class DoctorConsultationPageViewModel
-    {
-        public List<ConsultationViewModel> Consultations { get; set; } = new();
-        public ConsultationCreateViewModel NewConsultation { get; set; } = new();
-    }
 
 }
