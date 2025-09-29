@@ -19,7 +19,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // -------------------- IDENTITY --------------------
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = false; // for testing
+    options.SignIn.RequireConfirmedAccount = true;
     options.Password.RequiredLength = 12;
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(15);
     options.Lockout.MaxFailedAccessAttempts = 5;

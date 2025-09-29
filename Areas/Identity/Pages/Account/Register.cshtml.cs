@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
-using LinkCare_IT15.Models.Entities;   // ✅ Import ApplicationUser
+using LinkCare_IT15.Models.Entities;   // ✅ ApplicationUser
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -22,10 +22,10 @@ namespace LinkCare_IT15.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
-        private readonly SignInManager<ApplicationUser> _signInManager;  // ✅ use ApplicationUser
-        private readonly UserManager<ApplicationUser> _userManager;      // ✅ use ApplicationUser
-        private readonly IUserStore<ApplicationUser> _userStore;         // ✅ use ApplicationUser
-        private readonly IUserEmailStore<ApplicationUser> _emailStore;   // ✅ use ApplicationUser
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserStore<ApplicationUser> _userStore;
+        private readonly IUserEmailStore<ApplicationUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
 
@@ -110,8 +110,6 @@ namespace LinkCare_IT15.Areas.Identity.Pages.Account
                 var user = CreateUser();
 
                 // ✅ Map Input fields to ApplicationUser
-          
-
                 user.FirstName = Input.FirstName;
                 user.LastName = Input.LastName;
                 user.Email = Input.Email;
@@ -125,7 +123,6 @@ namespace LinkCare_IT15.Areas.Identity.Pages.Account
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
                 var result = await _userManager.CreateAsync(user, Input.Password);
-
 
                 if (result.Succeeded)
                 {
@@ -146,6 +143,7 @@ namespace LinkCare_IT15.Areas.Identity.Pages.Account
                     await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                         $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
+                    // ✅ Redirect to RegisterConfirmation page (Step 2)
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
                         return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
@@ -156,6 +154,8 @@ namespace LinkCare_IT15.Areas.Identity.Pages.Account
                         return LocalRedirect(returnUrl);
                     }
                 }
+
+                // Show errors if user creation failed
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
@@ -175,8 +175,7 @@ namespace LinkCare_IT15.Areas.Identity.Pages.Account
             catch
             {
                 throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                    $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
+                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
             }
         }
 
