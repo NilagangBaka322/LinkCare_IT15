@@ -11,7 +11,6 @@
         <p class="text-muted">Manage your appointments and calendar view</p>
     </div>
 
-    ```
     <div class="lc-card p-3 shadow-sm rounded bg-white">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="mb-0"><i class="bi bi-calendar2 me-2"></i>Doctor's Schedule</h5>
@@ -24,16 +23,15 @@
             <!-- Calendar -->
             <div id="calendar-col" class="col-lg-6 mb-4 mb-lg-0">
                 <h6 class="fw-bold mb-2">Calendar View</h6>
-                <div class="p-2 border rounded bg-light">
-                    <div id="calendar"></div>
-                </div>
+                <div id="calendar" class="border rounded bg-light p-2"></div>
             </div>
 
             <!-- Today's Schedule -->
             <div id="schedule-col" class="col-lg-6">
-                <h6 class="fw-bold mb-2">Today's Schedule</h6>
+                <h6 class="fw-bold mb-2">Scheduled Appointments</h6>
                 <p class="small text-muted">@Model.Schedule.Appointments.Count apts</p>
-                <div class="list-group">
+
+                <div id="schedule-scrollable" class="list-group border rounded p-2 overflow-auto">
                     @foreach (var appt in Model.Schedule.Appointments.OrderBy(a => a.StartDate))
                     {
                         var displayName = !string.IsNullOrEmpty(appt.PatientName)
@@ -102,7 +100,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-
                     <!-- Patient Type -->
                     <div class="mb-3">
                         <label class="form-label">Patient Type</label>
@@ -118,7 +115,6 @@
                         </div>
                     </div>
 
-
                     <!-- Registered Patient Search -->
                     <div class="mb-3" id="registeredPatientContainer">
                         <label class="form-label">Select Registered Patient</label>
@@ -130,7 +126,6 @@
                             }
                         </select>
                     </div>
-
 
                     <!-- Walk-in Patient -->
                     <div id="walkinPatientContainer" class="d-none">
@@ -195,36 +190,51 @@
             </div>
         </div>
     </div>
-    ```
-
 </div>
 
 @section Styles {
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/doctorappointments.css" />
+   
 }
 
 @section Scripts {
-     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    ```
     <script>
-            // Pass server-side appointments to JS
-            window.doctorAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        // Pass server-side appointments to JS
+        window.doctorAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
         Model.Schedule.Appointments.Select(a => new
         {
             id = a.Id,
             title = a.Title,
-            patientName = a.PatientName,    
+            patientName = a.PatientName,
             walkInName = a.WalkInName,
             startDate = a.StartDate.ToString("s"),
             endDate = a.EndDate.ToString("s"),
             status = a.Status
         })
     ));
+
+        // Adjust schedule height dynamically to match calendar
+        function adjustScheduleHeight() {
+            var calendar = document.getElementById('calendar');
+            var schedule = document.getElementById('schedule-scrollable');
+            if (calendar && schedule) {
+                var calendarHeight = calendar.offsetHeight;
+                schedule.style.maxHeight = calendarHeight + 'px';
+            }
+        }
+
+        window.addEventListener('load', adjustScheduleHeight);
+        window.addEventListener('resize', adjustScheduleHeight);
+
+        // If using FullCalendar instance, adjust after it renders
+        if (window.calendar) {
+            window.calendar.on('datesSet', adjustScheduleHeight);
+        }
     </script>
 
     <script src="~/js/doctorappointments.js"></script>
-```
-
 }

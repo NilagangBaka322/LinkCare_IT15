@@ -18,22 +18,22 @@
 
         @if (Model.Consultations != null && Model.Consultations.Any())
         {
-            <div class="list-group">
+                <div class="list-group">
                 @foreach (var consult in Model.Consultations)
                 {
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>@(consult.PatientName ?? "Walk-in")</strong><br />
-                            <small>@consult.Date.ToString("yyyy-MM-dd") • @consult.Notes</small>
-                        </div>
-                        <span class="badge bg-primary rounded-pill">@consult.Date.ToString("HH:mm")</span>
-                    </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@(consult.PatientName ?? "Walk-in")</strong><br />
+                                    <small>@consult.Date.ToString("yyyy-MM-dd") • @consult.Notes</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">@consult.Date.ToString("HH:mm")</span>
+                            </div>
                 }
-            </div>
+                </div>
         }
         else
         {
-            <div class="text-center text-muted p-4">No consultations found.</div>
+                <div class="text-center text-muted p-4">No consultations found.</div>
         }
     </div>
 </div>
@@ -58,24 +58,24 @@
 
                         @if (Model.NewConsultation.AppointmentId != null)
                         {
-                            <!-- Auto-filled from appointment -->
-                            <input type="text" class="form-control"
-                                   value="@(Model.NewConsultation.PatientId != null
+                                <!-- Auto-filled from appointment -->
+                                <input type="text" class="form-control"
+                                       value="@(Model.NewConsultation.PatientId != null
                                             ? Model.Patients.FirstOrDefault(p => p.Value == Model.NewConsultation.PatientId)?.Text
                                             : "Walk-in")"
-                                   readonly />
-                            <input type="hidden" asp-for="NewConsultation.PatientId" />
+                                       readonly />
+                                <input type="hidden" asp-for="NewConsultation.PatientId" />
                         }
                         else
                         {
-                            <!-- Choose registered patient or walk-in -->
-                            <select asp-for="NewConsultation.PatientId" class="form-select">
-                                <option value="">-- Walk-in (No Record) --</option>
+                                <!-- Choose registered patient or walk-in -->
+                                <select asp-for="NewConsultation.PatientId" class="form-select">
+                                    <option value="">-- Walk-in (No Record) --</option>
                                 @foreach (var patient in Model.Patients)
                                 {
-                                    <option value="@patient.Value">@patient.Text</option>
+                                            <option value="@patient.Value">@patient.Text</option>
                                 }
-                            </select>
+                                </select>
                         }
                     </div>
 
@@ -134,44 +134,44 @@
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Auto-open modal if AppointmentId exists
-            var appointmentId = '@Model.NewConsultation.AppointmentId';
-            if (appointmentId && appointmentId !== "0") {
-                var modal = new bootstrap.Modal(document.getElementById('newConsultationModal'));
-                modal.show();
-            }
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Auto-open modal if AppointmentId exists
+                var appointmentId = '@Model.NewConsultation.AppointmentId';
+                if (appointmentId && appointmentId !== "0") {
+                    var modal = new bootstrap.Modal(document.getElementById('newConsultationModal'));
+                    modal.show();
+                }
 
-            // Add Prescription dynamic input
-            const addPrescriptionBtn = document.getElementById("addPrescriptionBtn");
-            const prescriptionsContainer = document.getElementById("prescriptionsContainer");
+                // Add Prescription dynamic input
+                const addPrescriptionBtn = document.getElementById("addPrescriptionBtn");
+                const prescriptionsContainer = document.getElementById("prescriptionsContainer");
 
-            addPrescriptionBtn?.addEventListener("click", function () {
-                const count = prescriptionsContainer.querySelectorAll("input").length;
-                const input = document.createElement("input");
-                input.type = "text";
-                input.name = "NewConsultation.Prescriptions[" + count + "]";
-                input.className = "form-control mb-2";
-                input.placeholder = "Prescription " + (count + 1);
-                prescriptionsContainer.appendChild(input);
+                addPrescriptionBtn?.addEventListener("click", function () {
+                    const count = prescriptionsContainer.querySelectorAll("input").length;
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.name = "NewConsultation.Prescriptions[" + count + "]";
+                    input.className = "form-control mb-2";
+                    input.placeholder = "Prescription " + (count + 1);
+                    prescriptionsContainer.appendChild(input);
+                });
             });
-        });
-    </script>
+        </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @if (TempData["Success"] != null)
     {
         <text>
-            Swal.fire({ icon: 'success', title: 'Success!', text: '@TempData["Success"]' });
+                    Swal.fire({ icon: 'success', title: 'Success!', text: '@TempData["Success"]' });
         </text>
     }
     @if (TempData["Error"] != null)
     {
         <text>
-            Swal.fire({ icon: 'error', title: 'Error', text: '@TempData["Error"]' });
+                    Swal.fire({ icon: 'error', title: 'Error', text: '@TempData["Error"]' });
         </text>
     }
 
-    <partial name="_ValidationScriptsPartial" />
+        <partial name="_ValidationScriptsPartial" />
 }
