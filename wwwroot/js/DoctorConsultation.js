@@ -15,4 +15,12 @@
 
         item.style.display = visible ? "" : "none";
     });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const addPrescriptionBtn = document.getElementById("addPrescriptionBtn");
+        const prescriptionsContainer = document.getElementById("prescriptionsContainer");
+
+    });
+
+
 }

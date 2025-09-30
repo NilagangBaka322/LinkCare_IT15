@@ -11,6 +11,7 @@
         <p class="text-muted">Manage your appointments and calendar view</p>
     </div>
 
+    ```
     <div class="lc-card p-3 shadow-sm rounded bg-white">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="mb-0"><i class="bi bi-calendar2 me-2"></i>Doctor's Schedule</h5>
@@ -63,12 +64,29 @@
                                 <div>@displayName</div>
                                 <small class="text-muted">@appt.Title</small>
                             </div>
-                            <span class="badge rounded-pill @badgeClass align-self-center">
-                                @statusText
-                            </span>
+
+                            <div class="d-flex flex-column align-items-end">
+                                <span class="badge rounded-pill @badgeClass mb-2">
+                                    @statusText
+                                </span>
+
+                                @if (statusText == "completed")
+                                {
+                                    <button class="btn btn-sm btn-secondary" disabled>
+                                        Consultation Done
+                                    </button>
+                                }
+                                else
+                                {
+                                    <a asp-controller="Consultation"
+                                       asp-action="DoctorConsultation"
+                                       asp-route-appointmentId="@appt.Id"
+                                       class="btn btn-sm btn-primary">
+                                        Start Consultation
+                                    </a>
+                                }
+                            </div>
                         </div>
-
-
                     }
                 </div>
             </div>
@@ -99,7 +117,7 @@
                             </div>
                         </div>
                     </div>
-                  
+
 
                     <!-- Registered Patient Search -->
                     <div class="mb-3" id="registeredPatientContainer">
@@ -150,6 +168,7 @@
             </form>
         </div>
     </div>
+
     <!-- Reschedule Modal -->
     <div class="modal fade" id="rescheduleModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -176,26 +195,27 @@
             </div>
         </div>
     </div>
+    ```
+
 </div>
 
 @section Styles {
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/doctorappointments.css" />
-
 }
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    ```
     <script>
-        // Pass server-side appointments to JS
-        window.doctorAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            // Pass server-side appointments to JS
+            window.doctorAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
         Model.Schedule.Appointments.Select(a => new
         {
             id = a.Id,
             title = a.Title,
-            patientName = a.PatientName,
+            patientName = a.PatientName,    
             walkInName = a.WalkInName,
             startDate = a.StartDate.ToString("s"),
             endDate = a.EndDate.ToString("s"),
@@ -205,4 +225,6 @@
     </script>
 
     <script src="~/js/doctorappointments.js"></script>
+```
+
 }

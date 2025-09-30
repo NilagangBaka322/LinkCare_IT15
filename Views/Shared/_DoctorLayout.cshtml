@@ -1,4 +1,5 @@
-﻿@* Views/Shared/_DoctorLayout.cshtml *@
+﻿
+@* Views/Shared/_DoctorLayout.cshtml *@
 @{
     Layout = null;
     var title = ViewBag.Title as string ?? "Link Care · Smart Clinic System";
@@ -32,6 +33,7 @@
         body {
             background: var(--lc-bg);
             color: var(--lc-text);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         }
 
         /* Layout */
@@ -46,6 +48,7 @@
                 grid-template-columns: 70px 1fr;
             }
 
+        /* Sidebar */
         .lc-sidebar {
             background: linear-gradient(180deg, var(--lc-primary) 0%, var(--lc-primary-600) 100%);
             color: #fff;
@@ -84,22 +87,24 @@
         .lc-nav a {
             display: flex;
             align-items: center;
-            gap: .5rem;
+            gap: .6rem;
             color: #e5e7eb;
             text-decoration: none;
-            padding: .6rem .75rem;
+            padding: .65rem .85rem;
             border-radius: .75rem;
             font-weight: 500;
             white-space: nowrap;
+            transition: background .2s, transform .15s;
         }
 
             .lc-nav a:hover, .lc-nav a.active {
                 background: rgba(255,255,255,.15);
                 color: #fff;
+                transform: translateX(3px);
             }
 
         .lc-shell.collapsed .lc-nav a span {
-            display: none; /* hide labels when collapsed */
+            display: none;
         }
 
         /* Content */
@@ -116,6 +121,10 @@
             margin-bottom: 1rem;
         }
 
+            .lc-topbar .btn {
+                border-radius: .75rem;
+            }
+
         /* Cards */
         .lc-card {
             background: var(--lc-card);
@@ -126,7 +135,6 @@
     </style>
     @RenderSection("Styles", required: false)
 </head>
-
 
 <body>
     <div class="lc-shell">
@@ -148,12 +156,11 @@
                 <a class="@(activePage == "Appointments" ? "active" : "")" href="/Doctor/DoctorAppointments">
                     <i class="bi bi-calendar-event"></i> <span>Appointments</span>
                 </a>
+                <a class="@(activePage == "Consultations" ? "active" : "")" href="/Doctor/Consultation">
+                    <i class="bi bi-journal-text"></i> <span>Consultation</span>
+                </a>
                 <a class="@(activePage == "Patients" ? "active" : "")" href="/Doctor/DoctorPatients">
                     <i class="bi bi-people"></i> <span>Patients</span>
-                </a>
-                <a class="@(activePage == "Consultations" ? "active" : "")"
-                   href="/Doctor/Consultation/DoctorConsultation">
-                    <i class="bi bi-chat-dots"></i> <span>Consultations</span>
                 </a>
                 <a class="@(activePage == "MedicalRecords" ? "active" : "")" href="/Doctor/DoctorMedicalRecords">
                     <i class="bi bi-journal-medical"></i> <span>Medical Records</span>
@@ -190,6 +197,10 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
     <script>
         const shell = document.querySelector(".lc-shell");
         const toggleBtn = document.getElementById("toggleSidebar");

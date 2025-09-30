@@ -13,14 +13,19 @@ namespace LinkCare_IT15.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {
-        private readonly SignInManager<ApplicationUser> _signInManager;  // ✅ switched to ApplicationUser
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager; // ✅ Add this
         private readonly ILogger<LoginModel> _logger;
         private readonly IConfiguration _configuration;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger, IConfiguration configuration)
+        public LoginModel(SignInManager<ApplicationUser> signInManager,
+        UserManager<ApplicationUser> userManager, // ✅ Add this
+        ILogger<LoginModel> logger,
+        IConfiguration configuration)
         {
             _signInManager = signInManager;
-            _logger = logger;
+            _userManager = userManager; 
+            _logger = logger; 
             _configuration = configuration;
         }
 
@@ -53,67 +58,43 @@ namespace LinkCare_IT15.Areas.Identity.Pages.Account
         {
             ReturnUrl = returnUrl ?? Url.Content("~/");
 
-            const int MaxAttempts = 5;
-            const int CooldownSeconds = 15;
+            if (!ModelState.IsValid)
+                return Page();
 
-            var failedAttempts = HttpContext.Session.GetInt32("FailedAttempts") ?? 0;
-            var lockoutEnd = HttpContext.Session.GetString("LockoutEnd");
-
-            // ✅ Check cooldown with local time
-            if (!string.IsNullOrEmpty(lockoutEnd) && DateTime.TryParse(lockoutEnd, out var lockoutTime))
+            var user = await _userManager.FindByEmailAsync(Input.Email);
+            if (user == null)
             {
-                if (DateTime.Now < lockoutTime)
-                {
-                    CooldownRemaining = (int)(lockoutTime - DateTime.Now).TotalSeconds;
-                    RemainingAttempts = 0;
-                    ModelState.AddModelError(string.Empty, $"Too many failed attempts. Try again in {CooldownRemaining} seconds.");
-                    return Page();
-                }
-                else
-                {
-                    // reset lockout
-                    HttpContext.Session.Remove("LockoutEnd");
-                    failedAttempts = 0;
-                    HttpContext.Session.SetInt32("FailedAttempts", failedAttempts);
-                }
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
             }
 
-            if (ModelState.IsValid)
+            var result = await _signInManager.PasswordSignInAsync(
+                user.UserName, // still use UserName here
+                Input.Password,
+                Input.RememberMe,
+                lockoutOnFailure: false);
+
+            if (result.Succeeded)
             {
-                // ✅ Sign in using ApplicationUser’s UserName/Email
-                var result = await _signInManager.PasswordSignInAsync(
-                    Input.Email,
-                    Input.Password,
-                    Input.RememberMe,
-                    lockoutOnFailure: false);
+                // Get roles of the signed-in user
+                var roles = await _userManager.GetRolesAsync(user);
 
-                if (result.Succeeded)
-                {
-                    HttpContext.Session.SetInt32("FailedAttempts", 0);
-                    return LocalRedirect(ReturnUrl);
-                }
+                // Redirect based on role
+                if (roles.Contains("Admin"))
+                    return RedirectToAction("AdminDashboard", "Admin");
+                if (roles.Contains("Doctor"))
+                    return RedirectToAction("DoctorDashboard", "Doctor");
+                if (roles.Contains("Patient"))
+                    return RedirectToAction("PatientDashboard", "Patient");
 
-                // login failed
-                failedAttempts++;
-                HttpContext.Session.SetInt32("FailedAttempts", failedAttempts);
-
-                if (failedAttempts >= MaxAttempts)
-                {
-                    // ✅ Use DateTime.Now instead of UtcNow
-                    var cooldownEnd = DateTime.Now.AddSeconds(CooldownSeconds);
-                    HttpContext.Session.SetString("LockoutEnd", cooldownEnd.ToString("O"));
-                    CooldownRemaining = CooldownSeconds;
-                    RemainingAttempts = 0;
-                    ModelState.AddModelError(string.Empty, $"Too many failed attempts. Please wait {CooldownSeconds} seconds before trying again.");
-                }
-                else
-                {
-                    RemainingAttempts = MaxAttempts - failedAttempts;
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                }
+                // fallback
+                return LocalRedirect(ReturnUrl);
             }
 
+            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             return Page();
         }
+
+
     }
 }

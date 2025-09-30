@@ -1,5 +1,7 @@
-﻿using System;
+﻿using LinkCare_IT15.Models.Entities;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace LinkCare_IT15.Models.AdminModel
 {
@@ -134,25 +136,42 @@ namespace LinkCare_IT15.Models.AdminModel
         public int Count { get; set; }
     }
 
-    public class DoctorViewModel
+    public class NewDoctorViewModel
     {
-        public string Id { get; set; }
-        public string FullName { get; set; } = "";
-        public string Email { get; set; } = "";
-        public string Phone { get; set; } = "";
-        public string Specialty { get; set; } = "";
-        public string LicenseNumber { get; set; } = "";
-        public bool IsActive { get; set; } = true;
-        public DateTime Registered { get; set; }
-        public DateTime? LastLogin { get; set; }
+        [Required]
+        public string FirstName { get; set; }
+
+        [Required]
+        public string LastName { get; set; }
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        public string Phone { get; set; }
+
+        [Required]
+        public string Specialty { get; set; }
+
+        [Required]
+        public string LicenseNumber { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Compare("Password", ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; }
     }
 
     public class AdminDoctorsModel
     {
-        public List<DoctorViewModel> Doctors { get; set; } = new();
-        public int TotalDoctors => Doctors?.Count ?? 0;
+        public List<Doctor> Doctors { get; set; }
+        public string SearchTerm { get; set; }
 
-        // Optional: a search term used by the view/controller for filtering
-        public string SearchTerm { get; set; } = "";
+        public NewDoctorViewModel NewDoctor { get; set; } = new NewDoctorViewModel();
     }
+
 }

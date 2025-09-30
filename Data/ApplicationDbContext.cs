@@ -14,7 +14,7 @@ namespace LinkCare_IT15.Data
         public DbSet<Consultation> Consultations { get; set; }  // ✅ singular
         public DbSet<Appointment> Appointments { get; set; }
 
-
+        public DbSet<Doctor> Doctors { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

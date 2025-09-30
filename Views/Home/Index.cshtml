@@ -1,53 +1,202 @@
 ﻿@{
     ViewBag.Title = "Home - Link Care";
-    Layout = "~/Views/Shared/_Layout.cshtml"; // keep using your main layout
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container text-center mt-5">
-    <!-- Welcome Section -->
-    <h1 class="display-4 text-primary fw-bold">Welcome to Link Care</h1>
-    <p class="lead text-muted">Your trusted partner in health and wellness</p>
+<style>
+    /* =======================
+       Global Colors & Theme
+    ======================= */
+    :root {
+        --primary-blue: #08a8e7;
+        --primary-dark: #2a2a2a;
+        --light-bg: #f5f7fb;
+        --card-bg: #fff;
+        --text-muted: #555;
+    }
 
-    <!-- Healthcare Banner -->
-    <div class="mt-4 p-4 rounded shadow-sm" style="background: linear-gradient(135deg, #007bff, #3399ff); color: white;">
-        <h2 class="mb-3">"Health is not valued till sickness comes."</h2>
-        <p class="fs-5">– Thomas Fuller</p>
+    /* =======================
+       Hero Section
+    ======================= */
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark));
+        color: #fff;
+        padding: 5rem 2rem;
+        border-radius: 2rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+        }
+
+        .hero-section p {
+            font-size: 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .hero-section .btn {
+            margin-top: 2rem;
+            padding: 0.75rem 2.5rem;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            background-color: var(--primary-blue);
+            border: none;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+            .hero-section .btn:hover {
+                background-color: #0591c9;
+                transform: translateY(-3px);
+            }
+
+    /* =======================
+       Banner Section
+    ======================= */
+    .banner-section {
+        background: var(--light-bg);
+        padding: 4rem 2rem;
+        border-radius: 1.5rem;
+        text-align: center;
+    }
+
+        .banner-section h2 {
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+
+        .banner-section p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+    /* =======================
+       Quotes / Cards
+    ======================= */
+    .quotes-section {
+        margin-top: 5rem;
+    }
+
+    .quote-card {
+        border-radius: 1.5rem;
+        background: var(--card-bg);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+        padding: 2rem;
+        text-align: center;
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+        .quote-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+        }
+
+        .quote-card h5 {
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .quote-card p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin: 0;
+        }
+
+    /* =======================
+       Call-to-Action Button
+    ======================= */
+    .cta-btn {
+        background-color: var(--primary-blue);
+        color: #fff;
+        border-radius: 50px;
+        padding: 0.75rem 2.5rem;
+        font-size: 1.1rem;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+        .cta-btn:hover {
+            background-color: #0591c9;
+            transform: translateY(-3px);
+        }
+
+    /* =======================
+       Responsive
+    ======================= */
+    @@media (max-width: 992px) {
+        .hero-section h1
+
+    {
+        font-size: 2.5rem;
+    }
+
+    .hero-section p {
+        font-size: 1.1rem;
+    }
+
+    }
+    @@media (max-width: 768px) {
+        .quotes-section .row
+
+    {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .hero-section {
+        padding: 4rem 1.5rem;
+    }
+
+    }
+</style>
+
+<div class="container">
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1>Welcome to Link Care</h1>
+        <p>Your trusted partner in health and wellness</p>
+        <a class="btn" href="@Url.Page("/Account/Register", new { area = "Identity" })">Get Started</a>
     </div>
 
-    <!-- Quotes Section -->
-    <div class="row mt-5">
-        <div class="col-md-4 mb-4">
-            <div class="card shadow border-0 rounded-3">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">"The greatest wealth is health."</h5>
-                    <p class="card-text text-muted">– Virgil</p>
-                </div>
+    <!-- Banner Section -->
+    <div class="banner-section mt-5">
+        <h2>"Health is not valued till sickness comes."</h2>
+        <p>– Thomas Fuller</p>
+    </div>
+
+    <!-- Quotes / Cards Section -->
+    <div class="quotes-section row mt-5 g-4 justify-content-center">
+        <div class="col-sm-6 col-md-4">
+            <div class="quote-card">
+                <h5>"The greatest wealth is health."</h5>
+                <p>– Virgil</p>
             </div>
         </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card shadow border-0 rounded-3">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">"Caring for others is caring for yourself."</h5>
-                    <p class="card-text text-muted">– Anonymous</p>
-                </div>
+        <div class="col-sm-6 col-md-4">
+            <div class="quote-card">
+                <h5>"Caring for others is caring for yourself."</h5>
+                <p>– Anonymous</p>
             </div>
         </div>
-
-        <div class="col-md-4 mb-4">
-            <div class="card shadow border-0 rounded-3">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">"A fit body, a calm mind, and a house full of love."</h5>
-                    <p class="card-text text-muted">– Naval Ravikant</p>
-                </div>
+        <div class="col-sm-6 col-md-4">
+            <div class="quote-card">
+                <h5>"A fit body, a calm mind, and a house full of love."</h5>
+                <p>– Naval Ravikant</p>
             </div>
         </div>
     </div>
 
-    <!-- Call to Action -->
-    <div class="mt-5">
-        <a class="btn btn-primary btn-lg px-4 shadow" href="@Url.Action("Register", "Account")">
-            Get Started
-        </a>
+    <!-- Call-to-Action -->
+    <div class="text-center mt-5">
+        <a class="cta-btn" href="@Url.Page("/Account/Register", new { area = "Identity" })">Join Now</a>
     </div>
+
 </div>

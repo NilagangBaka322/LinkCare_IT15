@@ -140,7 +140,6 @@ namespace LinkCare_IT15.Controllers
 
             return View(model);
         }
-
         // ======================
         // Appointment Actions
         // ======================
@@ -172,6 +171,7 @@ namespace LinkCare_IT15.Controllers
             return Json(new { success = true });
         }
 
+        // 🔍 Search Patients (for autocomplete)
         [HttpGet]
         public async Task<IActionResult> SearchPatients(string query)
         {

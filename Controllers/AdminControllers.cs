@@ -1,16 +1,32 @@
 ﻿using LinkCare_IT15.Models.AdminModel;
+using LinkCare_IT15.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using LinkCare_IT15.Data;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 
 namespace LinkCare_IT15.Controllers
 {
 
     [Authorize(Roles = "Admin")] // restrict to admins
+
+
     public class AdminController : Controller
     {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
+
+
+        public AdminController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        {
+            _userManager = userManager;
+            _context = context;
+
+        }
+        
         public IActionResult AdminDashboard()
         {
             var model = new AdminDashboardModel
@@ -251,79 +267,29 @@ namespace LinkCare_IT15.Controllers
             return View("Reports", model); // explicitly load Reports.cshtml
         }
 
-        public IActionResult DoctorManagement(string search = null)
+        public async Task<IActionResult> DoctorManagement(string search = null)
         {
-            ViewData["ActivePage"] = "DoctorManagement";
+            var doctorsQuery = _context.Doctors.Include(d => d.User).AsQueryable();
 
-            // static sample data (replace with DB in real app)
-            var doctors = new List<DoctorViewModel>
-    {
-        new DoctorViewModel {
-            Id = "1",
-            FullName = "Dr. Emily Wilson",
-            Email = "emily.wilson@linkcare.com",
-            Phone = "+63-917-111-2222",
-            Specialty = "Family Medicine",
-            LicenseNumber = "MD-12345",
-            IsActive = true,
-            Registered = new DateTime(2024,1,15),
-            LastLogin = new DateTime(2025,9,13)
-        },
-        new DoctorViewModel {
-            Id = "2",
-            FullName = "Dr. Robert Brown",
-            Email = "robert.brown@linkcare.com",
-            Phone = "+63-917-333-4444",
-            Specialty = "Pulmonology",
-            LicenseNumber = "MD-23456",
-            IsActive = true,
-            Registered = new DateTime(2024,2,20),
-            LastLogin = new DateTime(2025,9,12)
-        },
-        new DoctorViewModel {
-            Id = "3",
-            FullName = "Dr. Maria Garcia",
-            Email = "maria.garcia@linkcare.com",
-            Phone = "+63-917-555-6666",
-            Specialty = "Cardiology",
-            LicenseNumber = "MD-34567",
-            IsActive = false,
-            Registered = new DateTime(2024,3,10),
-            LastLogin = new DateTime(2025,8,30)
-        },
-        new DoctorViewModel {
-            Id = "4",
-            FullName = "Dr. James Lee",
-            Email = "james.lee@linkcare.com",
-            Phone = "+63-917-777-8888",
-            Specialty = "Orthopedics",
-            LicenseNumber = "MD-45678",
-            IsActive = true,
-            Registered = new DateTime(2024,4,18),
-            LastLogin = new DateTime(2025,9,10)
-        }
-    };
-
-            // optional: simple server-side filter (case-insensitive)
             if (!string.IsNullOrWhiteSpace(search))
             {
-                doctors = doctors
-                    .FindAll(d =>
-                        d.FullName.Contains(search, StringComparison.OrdinalIgnoreCase)
-                        || d.Email.Contains(search, StringComparison.OrdinalIgnoreCase)
-                        || d.Specialty.Contains(search, StringComparison.OrdinalIgnoreCase)
-                        || d.LicenseNumber.Contains(search, StringComparison.OrdinalIgnoreCase)
-                    );
+                doctorsQuery = doctorsQuery.Where(d =>
+                    d.User.FirstName.Contains(search) ||
+                    d.User.LastName.Contains(search) ||
+                    d.User.Email.Contains(search) ||
+                    d.Specialty.Contains(search) ||
+                    d.LicenseNumber.Contains(search));
             }
 
             var model = new AdminDoctorsModel
             {
-                Doctors = doctors,
+                Doctors = await doctorsQuery.ToListAsync(),
                 SearchTerm = search ?? ""
             };
 
-            return View(model); // will load Views/Admin/DoctorManagement.cshtml
+            return View(model);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -338,20 +304,49 @@ namespace LinkCare_IT15.Controllers
         public IActionResult RegisterDoctor()
         {
             ViewData["ActivePage"] = "DoctorManagement";
-            return View(new DoctorViewModel { Registered = DateTime.Today });
+            return View(new NewDoctorViewModel());
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult RegisterDoctor(DoctorViewModel model)
+        public async Task<IActionResult> RegisterDoctor(NewDoctorViewModel model)
         {
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+                return View("DoctorManagement", new AdminDoctorsModel { NewDoctor = model });
 
-            // TODO: save to DB
-            TempData["Message"] = $"(Demo) Registered doctor {model.FullName}.";
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                PhoneNumber = model.Phone
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+                return View("DoctorManagement", new AdminDoctorsModel { NewDoctor = model });
+            }
+
+            var doctor = new Doctor
+            {
+                User = user,
+                Specialty = model.Specialty,
+                LicenseNumber = model.LicenseNumber,
+                IsActive = true,
+                Registered = DateTime.Now
+            };
+
+            _context.Doctors.Add(doctor);
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = $"Doctor {model.FirstName} {model.LastName} registered successfully!";
             return RedirectToAction("DoctorManagement");
         }
-
 
     }
 }

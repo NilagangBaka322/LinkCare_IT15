@@ -1,4 +1,5 @@
-﻿@model LinkCare_IT15.Models.ViewModels.DoctorConsultationViewModel
+﻿@model LinkCare_IT15.Models.ViewModels.DoctorConsultationVM
+
 
 @using System.Security.Claims
 
@@ -31,15 +32,20 @@
 
         @if (Model.Consultations != null && Model.Consultations.Any())
         {
-            foreach (var consult in Model.Consultations)
-            {
-                <div class="list-group-item">
-                    <strong>@(consult.Patient?.FullName ?? "Walk-in")</strong><br />
-                    <small>
-                        Dr. @(consult.Doctor?.FullName ?? "Unknown") • @consult.Date.ToString("yyyy-MM-dd") • @consult.Diagnosis
-                    </small>
-                </div>
-            }
+            <div class="list-group">
+                @foreach (var consult in Model.Consultations)
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>@(consult.PatientName ?? "Walk-in")</strong><br />
+                            <small>
+                                @consult.Date.ToString("yyyy-MM-dd") • @consult.Notes
+                            </small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">@consult.Date.ToString("HH:mm")</span>
+                    </div>
+                }
+            </div>
         }
         else
         {
@@ -49,90 +55,139 @@
 </div>
 
 <!-- New Consultation Modal -->
-<div class="modal fade" id="newConsultationModal" tabindex="-1" aria-labelledby="newConsultationModalLabel" aria-hidden="true">
+<div class="modal fade" id="newConsultationModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold">New Medical Consultation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <form asp-action="AddConsultation" method="post">
-                <!-- Hidden fields -->
-                <input type="hidden" name="DoctorId" value="@User.FindFirstValue(ClaimTypes.NameIdentifier)" />
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="NewConsultation.AppointmentId" />
 
-                <!-- Patient (manual entry for now, later can be dropdown/search) -->
-                <div class="mb-3">
-                    <label class="form-label">Patient ID</label>
-                    <input type="text" class="form-control" name="PatientId" placeholder="Enter Patient ID (optional)" />
+                <div class="modal-body">
+                    <!-- Patient -->
+                    <div class="mb-3">
+                        <label class="form-label">Patient</label>
+                        @if (Model.NewConsultation.AppointmentId != null)
+                        {
+                            <input type="text" class="form-control"
+                                   value="@(Model.Patients.FirstOrDefault(p => p.Value == Model.NewConsultation.PatientId)?.Text ?? "Walk-in")"
+                                   readonly />
+                            <input type="hidden" asp-for="NewConsultation.PatientId" />
+                        }
+                        else
+                        {
+                            <select asp-for="NewConsultation.PatientId" class="form-select">
+                                <option value="">-- Walk-in (No Record) --</option>
+                                @foreach (var patient in Model.Patients)
+                                {
+                                    <option value="@patient.Value">@patient.Text</option>
+                                }
+                            </select>
+                        }
+                    </div>
+
+                    <!-- Complaint + Diagnosis -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="NewConsultation.ChiefComplaint" class="form-label"></label>
+                            <input asp-for="NewConsultation.ChiefComplaint" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="NewConsultation.Diagnosis" class="form-label"></label>
+                            <textarea asp-for="NewConsultation.Diagnosis" class="form-control"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Prescriptions -->
+                    <div class="mb-3">
+                        <label class="form-label">Prescriptions</label>
+                        <div id="prescriptionsContainer">
+                            <input type="text" name="NewConsultation.Prescriptions[0]" class="form-control mb-2" placeholder="Prescription 1" />
+                        </div>
+                        <button type="button" id="addPrescriptionBtn" class="btn btn-sm btn-outline-primary">+ Add Prescription</button>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label asp-for="NewConsultation.Notes" class="form-label"></label>
+                        <textarea asp-for="NewConsultation.Notes" class="form-control"></textarea>
+                    </div>
+
+                    <!-- Vitals (side by side) -->
+                    <h5>Vitals</h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <input asp-for="NewConsultation.BloodPressure" class="form-control" placeholder="BP" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <input asp-for="NewConsultation.HeartRate" class="form-control" placeholder="HR" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <input asp-for="NewConsultation.Temperature" class="form-control" placeholder="Temp" />
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <input asp-for="NewConsultation.Weight" class="form-control" placeholder="Weight" />
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Chief Complaint -->
-                <div class="mb-3">
-                    <label class="form-label">Chief Complaint *</label>
-                    <textarea class="form-control" name="ChiefComplaint" placeholder="Chief Complaint" required></textarea>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Consultation</button>
                 </div>
 
-                <!-- Diagnosis -->
-                <div class="mb-3">
-                    <label class="form-label">Diagnosis *</label>
-                    <textarea class="form-control" name="Diagnosis" placeholder="Diagnosis" required></textarea>
-                </div>
-
-                <!-- Prescriptions -->
-                <div id="prescriptionsContainer" class="mb-3">
-                    <input type="text" class="form-control mb-2" name="Prescriptions" placeholder="Prescription 1" />
-                </div>
-                <button type="button" id="addPrescriptionBtn" class="btn btn-sm btn-outline-secondary mb-3">
-                    Add Prescription
-                </button>
-
-                <!-- Notes -->
-                <div class="mb-3">
-                    <label class="form-label">Notes</label>
-                    <textarea class="form-control" name="Notes" placeholder="Additional notes"></textarea>
-                </div>
-
-                <!-- Vitals -->
-                <div class="mb-3">
-                    <label class="form-label">Blood Pressure</label>
-                    <input type="text" class="form-control" name="BloodPressure" placeholder="Blood Pressure" />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Heart Rate</label>
-                    <input type="text" class="form-control" name="HeartRate" placeholder="Heart Rate" />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Temperature</label>
-                    <input type="text" class="form-control" name="Temperature" placeholder="Temperature" />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Weight</label>
-                    <input type="text" class="form-control" name="Weight" placeholder="Weight" />
-                </div>
-
-                <button type="submit" class="btn btn-primary">Save Consultation</button>
             </form>
-
         </div>
     </div>
+
 </div>
 
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // Auto-open modal if AppointmentId exists
+            var appointmentId = '@Model.NewConsultation.AppointmentId';
+            if (appointmentId && appointmentId !== "0") {
+                var modal = new bootstrap.Modal(document.getElementById('newConsultationModal'));
+                modal.show();
+            }
+
+            // Add Prescription dynamic input
             const addPrescriptionBtn = document.getElementById("addPrescriptionBtn");
             const prescriptionsContainer = document.getElementById("prescriptionsContainer");
 
             addPrescriptionBtn?.addEventListener("click", function () {
-                const count = prescriptionsContainer.querySelectorAll("input").length + 1;
+                const count = prescriptionsContainer.querySelectorAll("input").length;
                 const input = document.createElement("input");
                 input.type = "text";
-                input.name = "Prescriptions";
+                input.name = "NewConsultation.Prescriptions[" + count + "]";
                 input.className = "form-control mb-2";
-                input.placeholder = "Prescription " + count;
+                input.placeholder = "Prescription " + (count + 1);
                 prescriptionsContainer.appendChild(input);
             });
         });
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @if (TempData["Success"] != null)
+    {
+        <text>
+            Swal.fire({ icon: 'success', title: 'Success!', text: '@TempData["Success"]' });
+        </text>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <text>
+            Swal.fire({ icon: 'error', title: 'Error', text: '@TempData["Error"]' });
+        </text>
+    }
+
+    <partial name="_ValidationScriptsPartial" />
 }
+
+
+
