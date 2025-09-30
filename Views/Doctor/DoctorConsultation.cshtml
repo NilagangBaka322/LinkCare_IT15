@@ -1,28 +1,14 @@
 ﻿@model LinkCare_IT15.Models.ViewModels.DoctorConsultationVM
 
-
-@using System.Security.Claims
-
 @{
     ViewBag.Title = "Consultations · Link Care";
     Layout = "~/Views/Shared/_DoctorLayout.cshtml";
 }
 
 <div class="container-fluid">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h3 class="fw-bold">Consultations</h3>
-            <p class="text-muted">Manage patient consultations and medical history</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a class="btn btn-outline-secondary">
-                <i class="bi bi-printer me-1"></i> Print Consultations
-            </a>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newConsultationModal">
-                <i class="bi bi-plus-circle me-1"></i> New Consultation
-            </button>
-        </div>
+    <div class="mb-3">
+        <h3 class="fw-bold">Consultations</h3>
+        <p class="text-muted">Manage patient consultations and medical history</p>
     </div>
 
     <!-- Consultation Records -->
@@ -38,9 +24,7 @@
                     <div class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
                             <strong>@(consult.PatientName ?? "Walk-in")</strong><br />
-                            <small>
-                                @consult.Date.ToString("yyyy-MM-dd") • @consult.Notes
-                            </small>
+                            <small>@consult.Date.ToString("yyyy-MM-dd") • @consult.Notes</small>
                         </div>
                         <span class="badge bg-primary rounded-pill">@consult.Date.ToString("HH:mm")</span>
                     </div>
@@ -68,18 +52,23 @@
                 <input type="hidden" asp-for="NewConsultation.AppointmentId" />
 
                 <div class="modal-body">
-                    <!-- Patient -->
+                    <!-- Patient Selection -->
                     <div class="mb-3">
                         <label class="form-label">Patient</label>
+
                         @if (Model.NewConsultation.AppointmentId != null)
                         {
+                            <!-- Auto-filled from appointment -->
                             <input type="text" class="form-control"
-                                   value="@(Model.Patients.FirstOrDefault(p => p.Value == Model.NewConsultation.PatientId)?.Text ?? "Walk-in")"
+                                   value="@(Model.NewConsultation.PatientId != null
+                                            ? Model.Patients.FirstOrDefault(p => p.Value == Model.NewConsultation.PatientId)?.Text
+                                            : "Walk-in")"
                                    readonly />
                             <input type="hidden" asp-for="NewConsultation.PatientId" />
                         }
                         else
                         {
+                            <!-- Choose registered patient or walk-in -->
                             <select asp-for="NewConsultation.PatientId" class="form-select">
                                 <option value="">-- Walk-in (No Record) --</option>
                                 @foreach (var patient in Model.Patients)
@@ -117,7 +106,7 @@
                         <textarea asp-for="NewConsultation.Notes" class="form-control"></textarea>
                     </div>
 
-                    <!-- Vitals (side by side) -->
+                    <!-- Vitals -->
                     <h5>Vitals</h5>
                     <div class="row">
                         <div class="col-md-3 mb-3">
@@ -139,11 +128,9 @@
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Consultation</button>
                 </div>
-
             </form>
         </div>
     </div>
-
 </div>
 
 @section Scripts {
@@ -188,6 +175,3 @@
 
     <partial name="_ValidationScriptsPartial" />
 }
-
-
-

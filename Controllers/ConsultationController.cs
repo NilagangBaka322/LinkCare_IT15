@@ -1,5 +1,4 @@
-﻿
-using LinkCare_IT15.Data;
+﻿using LinkCare_IT15.Data;
 using LinkCare_IT15.Models;
 using LinkCare_IT15.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -10,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
+using CreateConsultationDto = LinkCare_IT15.Models.ViewModels.CreateConsultationDto;
 
 namespace LinkCare_IT15.Controllers
 {
@@ -24,19 +24,21 @@ namespace LinkCare_IT15.Controllers
             _context = context;
         }
 
-        // GET
+        // GET: /Doctor/Consultation/DoctorConsultation
         [HttpGet]
         [ActionName("DoctorConsultation")]
         public async Task<IActionResult> Index(int? appointmentId)
         {
             var doctorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+            // Load all consultations of this doctor
             var consultations = await _context.Consultations
                 .Include(c => c.Patient)
                 .Where(c => c.DoctorId == doctorId && !c.IsArchived)
                 .OrderByDescending(c => c.Date)
                 .ToListAsync();
 
+            // Prepare new consultation DTO
             var newConsultation = new CreateConsultationDto();
 
             if (appointmentId.HasValue)
@@ -48,17 +50,17 @@ namespace LinkCare_IT15.Controllers
                 if (appointment != null)
                 {
                     newConsultation.AppointmentId = appointment.Id;
-                    newConsultation.PatientId = appointment.PatientId;
+                    newConsultation.PatientId = appointment.PatientId; // linked patient
                 }
             }
 
-            var vm = new DoctorConsultationVM
+            var viewModel = new DoctorConsultationVM
             {
-                Consultations = consultations.Select(c => new ConsultationEntityVM
+                Consultations = consultations.Select(c => new ConsultationRecordVM
                 {
                     Id = c.Id,
                     PatientId = c.PatientId ?? string.Empty,
-                    PatientName = c.Patient?.FullName ?? "Walk-in",
+                        
                     ChiefComplaint = c.ChiefComplaint,
                     Diagnosis = c.Diagnosis,
                     Prescriptions = c.Prescriptions ?? string.Empty,
@@ -70,92 +72,68 @@ namespace LinkCare_IT15.Controllers
                     Date = c.Date
                 }).ToList(),
 
-                NewConsultation = newConsultation,
 
-                Patients = (from user in _context.Users
-                            join ur in _context.UserRoles on user.Id equals ur.UserId
-                            join role in _context.Roles on ur.RoleId equals role.Id
-                            where role.Name == "Patient"
-                            select new SelectListItem
-                            {
-                                Value = user.Id,
-                                Text = user.FullName
-                            }).ToList()
+                NewConsultation = newConsultation,
+                Patients = _context.Users.Select(u => new SelectListItem
+                {
+                    Value = u.Id,
+                    Text = u.FullName
+                }).ToList()
             };
 
-            return View("~/Views/Doctor/DoctorConsultation.cshtml", vm);
+            return View("~/Views/Doctor/DoctorConsultation.cshtml", viewModel);
         }
 
-        // POST
+        // POST: /Doctor/Consultation/AddConsultation
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddConsultation(DoctorConsultationVM vm)
+        public async Task<IActionResult> AddConsultation(DoctorConsultationVM model)
         {
-            var model = vm.NewConsultation;
-
-            // DEBUG: log all posted values
-            Console.WriteLine("=== FORM DEBUG ===");
-            Console.WriteLine($"ChiefComplaint: {model?.ChiefComplaint}");
-            Console.WriteLine($"Diagnosis: {model?.Diagnosis}");
-            Console.WriteLine($"PatientId: {model?.PatientId}");
-            Console.WriteLine($"AppointmentId: {model?.AppointmentId}");
-            Console.WriteLine($"Prescriptions: {string.Join(", ", model?.Prescriptions ?? new List<string>())}");
-            Console.WriteLine($"Notes: {model?.Notes}");
-            Console.WriteLine($"BP: {model?.BloodPressure}");
-            Console.WriteLine($"HR: {model?.HeartRate}");
-            Console.WriteLine($"Temp: {model?.Temperature}");
-            Console.WriteLine($"Weight: {model?.Weight}");
-            Console.WriteLine("==================");
-
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                              .Select(e => e.ErrorMessage);
-                Console.WriteLine("Validation errors: " + string.Join(" | ", errors));
+                var errors = string.Join(" | ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
 
-                // repopulate Patients
-                vm.Patients = (from user in _context.Users
-                               join ur in _context.UserRoles on user.Id equals ur.UserId
-                               join role in _context.Roles on ur.RoleId equals role.Id
-                               where role.Name == "Patient"
-                               select new SelectListItem
-                               {
-                                   Value = user.Id,
-                                   Text = user.FullName
-                               }).ToList();
-
-                return View("~/Views/Doctor/DoctorConsultation.cshtml", vm);
+                TempData["Error"] = "Invalid consultation: " + errors;
+                return RedirectToAction("DoctorConsultation", new { appointmentId = model.NewConsultation.AppointmentId });
             }
 
-            // if everything looks good, save
             var doctorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var consultation = new Consultation
+            // Convert list of prescriptions to single string
+            string? prescriptionsText = null;
+            if (model.NewConsultation.Prescriptions != null && model.NewConsultation.Prescriptions.Any())
+            {
+                prescriptionsText = string.Join(", ",
+                    model.NewConsultation.Prescriptions
+                        .Where(p => !string.IsNullOrWhiteSpace(p)));
+            }
+
+            var newConsult = new Consultation
             {
                 DoctorId = doctorId,
-                PatientId = string.IsNullOrEmpty(model.PatientId) ? null : model.PatientId,
-                AppointmentId = model.AppointmentId,
+                PatientId = string.IsNullOrEmpty(model.NewConsultation.PatientId) ? null : model.NewConsultation.PatientId,
+
+                AppointmentId = model.NewConsultation.AppointmentId,
                 Date = DateTime.Now,
-                ChiefComplaint = model.ChiefComplaint,
-                Diagnosis = model.Diagnosis,
-                Prescriptions = string.Join(", ", model.Prescriptions ?? new List<string>()),
-                BloodPressure = model.BloodPressure,
-                HeartRate = model.HeartRate,
-                Temperature = model.Temperature,
-                Weight = model.Weight,
-                Notes = model.Notes
+                ChiefComplaint = model.NewConsultation.ChiefComplaint,
+                Diagnosis = model.NewConsultation.Diagnosis,
+                Prescriptions = prescriptionsText,
+                Notes = model.NewConsultation.Notes,
+                BloodPressure = model.NewConsultation.BloodPressure,
+                HeartRate = model.NewConsultation.HeartRate,
+                Temperature = model.NewConsultation.Temperature,
+                Weight = model.NewConsultation.Weight,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
-            _context.Consultations.Add(consultation);
+            _context.Consultations.Add(newConsult);
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Consultation saved successfully!";
-            return RedirectToAction("DoctorConsultation", new { appointmentId = model.AppointmentId });
+            return RedirectToAction("DoctorConsultation", new { appointmentId = model.NewConsultation.AppointmentId });
         }
-
     }
-
-
-
 }
-
