@@ -16,7 +16,9 @@ public class Consultation
     public string? PatientId { get; set; }
     public ApplicationUser? Patient { get; set; }
 
- 
+    [StringLength(255)]
+    public string? WalkInName { get; set; }
+
     [ForeignKey("Appointment")]
     public int? AppointmentId { get; set; }
     public Appointment? Appointment { get; set; }
@@ -49,6 +51,10 @@ public class Consultation
 
     [StringLength(20)]
     public string? Weight { get; set; }
+
+    [Column(TypeName = "decimal(10,2)")]
+    [Required(ErrorMessage = "Consultation Fee is required")]
+    public decimal ConsultationFee { get; set; }
 
 
     public bool IsArchived { get; set; } = false;

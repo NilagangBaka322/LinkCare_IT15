@@ -5,11 +5,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
-using CreateConsultationDto = LinkCare_IT15.Models.ViewModels.CreateConsultationDto;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LinkCare_IT15.Controllers
 {
@@ -31,9 +30,10 @@ namespace LinkCare_IT15.Controllers
         {
             var doctorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Load all consultations of this doctor
+            // Get consultations by doctor
             var consultations = await _context.Consultations
                 .Include(c => c.Patient)
+                .Include(c => c.Appointment)
                 .Where(c => c.DoctorId == doctorId && !c.IsArchived)
                 .OrderByDescending(c => c.Date)
                 .ToListAsync();
@@ -50,7 +50,8 @@ namespace LinkCare_IT15.Controllers
                 if (appointment != null)
                 {
                     newConsultation.AppointmentId = appointment.Id;
-                    newConsultation.PatientId = appointment.PatientId; // linked patient
+                    newConsultation.PatientId = appointment.PatientId;
+                    newConsultation.WalkInName = appointment.WalkInName;
                 }
             }
 
@@ -59,25 +60,29 @@ namespace LinkCare_IT15.Controllers
                 Consultations = consultations.Select(c => new ConsultationRecordVM
                 {
                     Id = c.Id,
-                    PatientId = c.PatientId ?? string.Empty,
-                        
+                    AppointmentId = c.AppointmentId,
+                    PatientId = c.PatientId,
+                    PatientName = c.Patient != null
+                        ? $"{c.Patient.FirstName} {c.Patient.LastName}"
+                        : (c.Appointment != null ? c.Appointment.WalkInName ?? "Walk-in" : "Walk-in"),
+                    WalkInName = c.Appointment?.WalkInName,
                     ChiefComplaint = c.ChiefComplaint,
                     Diagnosis = c.Diagnosis,
-                    Prescriptions = c.Prescriptions ?? string.Empty,
-                    Notes = c.Notes ?? string.Empty,
-                    BloodPressure = c.BloodPressure ?? string.Empty,
-                    HeartRate = c.HeartRate ?? string.Empty,
-                    Temperature = c.Temperature ?? string.Empty,
-                    Weight = c.Weight ?? string.Empty,
+                    Prescriptions = c.Prescriptions,
+                    Notes = c.Notes,
+                    BloodPressure = c.BloodPressure,
+                    HeartRate = c.HeartRate,
+                    Temperature = c.Temperature,
+                    Weight = c.Weight,
+                    ConsultationFee = c.ConsultationFee,
                     Date = c.Date
                 }).ToList(),
-
 
                 NewConsultation = newConsultation,
                 Patients = _context.Users.Select(u => new SelectListItem
                 {
                     Value = u.Id,
-                    Text = u.FullName
+                    Text = $"{u.FirstName} {u.LastName}"
                 }).ToList()
             };
 
@@ -91,30 +96,24 @@ namespace LinkCare_IT15.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var errors = string.Join(" | ", ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage));
-
-                TempData["Error"] = "Invalid consultation: " + errors;
+                TempData["Error"] = "Invalid consultation data.";
                 return RedirectToAction("DoctorConsultation", new { appointmentId = model.NewConsultation.AppointmentId });
             }
 
             var doctorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Convert list of prescriptions to single string
+            // Join prescriptions list
             string? prescriptionsText = null;
             if (model.NewConsultation.Prescriptions != null && model.NewConsultation.Prescriptions.Any())
             {
                 prescriptionsText = string.Join(", ",
-                    model.NewConsultation.Prescriptions
-                        .Where(p => !string.IsNullOrWhiteSpace(p)));
+                    model.NewConsultation.Prescriptions.Where(p => !string.IsNullOrWhiteSpace(p)));
             }
 
             var newConsult = new Consultation
             {
                 DoctorId = doctorId,
                 PatientId = string.IsNullOrEmpty(model.NewConsultation.PatientId) ? null : model.NewConsultation.PatientId,
-
                 AppointmentId = model.NewConsultation.AppointmentId,
                 Date = DateTime.Now,
                 ChiefComplaint = model.NewConsultation.ChiefComplaint,
@@ -125,9 +124,22 @@ namespace LinkCare_IT15.Controllers
                 HeartRate = model.NewConsultation.HeartRate,
                 Temperature = model.NewConsultation.Temperature,
                 Weight = model.NewConsultation.Weight,
+                ConsultationFee = model.NewConsultation.ConsultationFee,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
+
+            // Add walk-in name if applicable
+            if (!string.IsNullOrWhiteSpace(model.NewConsultation.WalkInName))
+            {
+                newConsult.Appointment = await _context.Appointments
+                    .FirstOrDefaultAsync(a => a.Id == model.NewConsultation.AppointmentId);
+
+                if (newConsult.Appointment != null)
+                {
+                    newConsult.Appointment.WalkInName = model.NewConsultation.WalkInName;
+                }
+            }
 
             _context.Consultations.Add(newConsult);
             await _context.SaveChangesAsync();

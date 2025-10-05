@@ -71,7 +71,7 @@ namespace LinkCare_IT15.Data.Migrations
 
                     b.HasIndex("PatientId");
 
-                    b.ToTable("Appointments");
+                    b.ToTable("Appointments", (string)null);
                 });
 
             modelBuilder.Entity("LinkCare_IT15.Models.Consultation", b =>
@@ -146,7 +146,7 @@ namespace LinkCare_IT15.Data.Migrations
 
                     b.HasIndex("PatientId");
 
-                    b.ToTable("Consultations");
+                    b.ToTable("Consultations", (string)null);
                 });
 
             modelBuilder.Entity("LinkCare_IT15.Models.Entities.ApplicationUser", b =>
@@ -272,7 +272,7 @@ namespace LinkCare_IT15.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Doctors");
+                    b.ToTable("Doctors", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

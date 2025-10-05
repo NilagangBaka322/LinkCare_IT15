@@ -1,0 +1,29 @@
+﻿.consultation-accordion .prescription-pill {
+    display: inline-flex; /* keep icon + text together */
+    align-items: center;
+    gap: .5rem;
+    padding: .35rem .9rem;
+    border-radius: 999px;
+    font-size: .95rem;
+    white-space: nowrap; /* prevent wrapping between words/letters */
+    word-break: normal; /* do not break inside words */
+    overflow-wrap: normal;
+    -webkit-user-select: text;
+    user-select: text;
+    background-color: rgba(108,117,125,0.08);
+}
+
+    .consultation-accordion .prescription-pill .bi {
+        font-size: 1.05rem;
+    }
+
+/* bigger icons and spacing for vitals row */
+.consultation-accordion .vital-icon {
+    font-size: 1.35rem;
+    display: block;
+    margin-bottom: .25rem;
+}
+
+.consultation-accordion .accordion-body {
+    font-size: 0.98rem;
+}

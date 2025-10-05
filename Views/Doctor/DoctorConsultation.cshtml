@@ -11,33 +11,144 @@
         <p class="text-muted">Manage patient consultations and medical history</p>
     </div>
 
+    @* Add Bootstrap Icons if not already included *@
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Search Bar -->
+    <div class="input-group mb-4">
+        <span class="input-group-text bg-primary text-white">
+            <i class="bi bi-search"></i>
+        </span>
+        <input type="text" id="searchConsultations" class="form-control" placeholder="Search by patient name or complaint..." />
+    </div>
     <!-- Consultation Records -->
     <div class="lc-card p-4">
-        <h5 class="mb-3">Consultation Records</h5>
+        <h5 class="mb-3 fs-4 fw-bold">Consultation Records</h5>
         <p class="text-muted">Your recorded consultations with patients</p>
 
         @if (Model.Consultations != null && Model.Consultations.Any())
         {
-                <div class="list-group">
-                @foreach (var consult in Model.Consultations)
+            <div class="accordion consultation-accordion" id="consultationAccordion">
+                @for (int i = 0; i < Model.Consultations.Count; i++)
                 {
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                    var consult = Model.Consultations[i];
+                    var collapseId = $"collapse{i}";
+                    var headingId = $"heading{i}";
+
+                    <div class="accordion-item mb-3 shadow-sm rounded-3 border-0">
+                        <h2 class="accordion-header" id="@headingId">
+                            <button class="accordion-button collapsed d-flex justify-content-between align-items-center py-3 fs-5"
+                                    type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#@collapseId"
+                                    aria-expanded="false" aria-controls="@collapseId">
+
                                 <div>
-                                    <strong>@(consult.PatientName ?? "Walk-in")</strong><br />
-                                    <small>@consult.Date.ToString("yyyy-MM-dd") • @consult.Notes</small>
+                                    <strong>
+                                        @(string.IsNullOrEmpty(consult.PatientName)
+                                            ? (consult.AppointmentPatientName ?? "Walk-in")
+                                            : consult.PatientName)
+                                    </strong>
+
+                                    <div class="small text-muted">
+                                        @consult.Date.ToString("yyyy-MM-dd") • @consult.Date.ToString("HH:mm")
+                                        <span class="mx-2 text-secondary">|</span>
+                                        <em>@consult.ChiefComplaint</em>
+                                    </div>
+
                                 </div>
-                                <span class="badge bg-primary rounded-pill">@consult.Date.ToString("HH:mm")</span>
+
+                               
+                            </button>
+                        </h2>
+
+                        <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="@headingId" data-bs-parent="#consultationAccordion">
+                            <div class="accordion-body">
+
+                                <div class="mb-3">
+                                    <strong>Chief Complaint:</strong>
+                                    <div class="mt-1 ps-2 border-start border-3 border-primary">
+                                        @consult.ChiefComplaint
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <strong>Diagnosis:</strong>
+                                    <div class="mt-1 ps-2 border-start border-3 border-danger">
+                                        @consult.Diagnosis
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(consult.Prescriptions))
+                                {
+                                    <div class="mb-3">
+                                        <strong>Prescription:</strong>
+                                        <div class="mt-2 d-flex flex-wrap gap-2">
+                                            @{
+                                                var prescriptions = consult.Prescriptions
+                                                .Split(new[] { ',', ';', '|', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(p => p.Trim())
+                                                .Where(p => !string.IsNullOrEmpty(p))
+                                                .ToList();
+
+                                                foreach (var p in prescriptions)
+                                                {
+                                                    <span class="badge bg-secondary px-3 py-2 fs-6 rounded-pill">
+                                                        <i class="bi bi-capsule me-1"></i> @p
+                                                    </span>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+
+                                <div class="d-flex justify-content-between text-center bg-light p-3 rounded-3 mb-3">
+                                    <div>
+                                        <i class="bi bi-activity vital-icon text-primary" aria-hidden="true"></i>
+                                        <div class="small text-muted">Blood Pressure</div>
+                                        <div class="fw-semibold">@consult.BloodPressure</div>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-heart-fill vital-icon text-danger" aria-hidden="true"></i>
+                                        <div class="small text-muted">Heart Rate</div>
+                                        <div class="fw-semibold">@consult.HeartRate bpm</div>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-thermometer-half vital-icon text-warning" aria-hidden="true"></i>
+                                        <div class="small text-muted">Temperature</div>
+                                        <div class="fw-semibold">@consult.Temperature °C</div>
+                                    </div>
+                                    <div>
+                                        @* Reliable weighing-scale display: emoji fallback (always shows) *@
+                                        <span class="vital-icon" aria-hidden="true">⚖️</span>
+                                        <div class="small text-muted">Weight</div>
+                                        <div class="fw-semibold">@consult.Weight kg</div>
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(consult.Notes))
+                                {
+                                    <div>
+                                        <strong>Notes:</strong>
+                                        <div class="mt-1 ps-2 border-start border-3 border-info">
+                                            @consult.Notes
+                                        </div>
+                                    </div>
+                                }
+
                             </div>
+                        </div>
+                    </div>
                 }
-                </div>
+            </div>
         }
         else
         {
-                <div class="text-center text-muted p-4">No consultations found.</div>
+            <div class="text-center text-muted p-4">No consultations found.</div>
         }
     </div>
-</div>
 
+</div>
 <!-- New Consultation Modal -->
 <div class="modal fade" id="newConsultationModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -122,6 +233,15 @@
                             <input asp-for="NewConsultation.Weight" class="form-control" placeholder="Weight" />
                         </div>
                     </div>
+
+                    <!-- Payment -->
+                    <div class="mb-3">
+                        <label asp-for="NewConsultation.ConsultationFee" class="form-label fw-semibold">Payment Amount (₱)</label>
+                        <input asp-for="NewConsultation.ConsultationFee" type="number" step="0.01" min="0" class="form-control" placeholder="Enter payment amount" />
+                        <span asp-validation-for="NewConsultation.ConsultationFee" class="text-danger"></span>
+                    </div>
+
+
                 </div>
 
                 <div class="modal-footer">
@@ -134,30 +254,79 @@
 </div>
 
 @section Scripts {
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                // Auto-open modal if AppointmentId exists
-                var appointmentId = '@Model.NewConsultation.AppointmentId';
-                if (appointmentId && appointmentId !== "0") {
-                    var modal = new bootstrap.Modal(document.getElementById('newConsultationModal'));
-                    modal.show();
-                }
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // 🩺 Auto-open modal if AppointmentId exists
+            var appointmentId = '@Model.NewConsultation.AppointmentId';
+            if (appointmentId && appointmentId !== "0") {
+                var modal = new bootstrap.Modal(document.getElementById('newConsultationModal'));
+                modal.show();
+            }
 
-                // Add Prescription dynamic input
-                const addPrescriptionBtn = document.getElementById("addPrescriptionBtn");
-                const prescriptionsContainer = document.getElementById("prescriptionsContainer");
+            // 💊 Add Prescription dynamic input
+            const addPrescriptionBtn = document.getElementById("addPrescriptionBtn");
+            const prescriptionsContainer = document.getElementById("prescriptionsContainer");
 
-                addPrescriptionBtn?.addEventListener("click", function () {
-                    const count = prescriptionsContainer.querySelectorAll("input").length;
-                    const input = document.createElement("input");
-                    input.type = "text";
-                    input.name = "NewConsultation.Prescriptions[" + count + "]";
-                    input.className = "form-control mb-2";
-                    input.placeholder = "Prescription " + (count + 1);
-                    prescriptionsContainer.appendChild(input);
-                });
+            addPrescriptionBtn?.addEventListener("click", function () {
+                const count = prescriptionsContainer.querySelectorAll("input").length;
+                const input = document.createElement("input");
+                input.type = "text";
+                input.name = "NewConsultation.Prescriptions[" + count + "]";
+                input.className = "form-control mb-2";
+                input.placeholder = "Prescription " + (count + 1);
+                prescriptionsContainer.appendChild(input);
             });
-        </script>
+
+            // 🔍 Search Consultation Records (by name or complaint)
+            const searchInput = document.getElementById("searchConsultations");
+            const accordionItems = document.querySelectorAll(".consultation-accordion .accordion-item");
+
+            searchInput?.addEventListener("input", function () {
+                const query = this.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                accordionItems.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    const match = text.includes(query);
+                    item.style.display = match ? "" : "none";
+                    if (match) visibleCount++;
+                });
+
+                // Optional: show "No results" message
+                const noResults = document.getElementById("noResults");
+                if (noResults) {
+                    noResults.style.display = visibleCount ? "none" : "";
+                }
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @if (TempData["Success"] != null)
+    {
+        <text>
+            Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: '@TempData["Success"]'
+            });
+        </text>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <text>
+            Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: '@TempData["Error"]'
+            });
+        </text>
+    }
+
+    <partial name="_ValidationScriptsPartial" />
+}
+
 
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @if (TempData["Success"] != null)
