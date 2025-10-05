@@ -18,7 +18,6 @@ public class Consultation
 
     [StringLength(255)]
     public string? WalkInName { get; set; }
-
     [ForeignKey("Appointment")]
     public int? AppointmentId { get; set; }
     public Appointment? Appointment { get; set; }

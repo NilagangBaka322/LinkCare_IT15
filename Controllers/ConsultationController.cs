@@ -51,7 +51,12 @@ namespace LinkCare_IT15.Controllers
                 {
                     newConsultation.AppointmentId = appointment.Id;
                     newConsultation.PatientId = appointment.PatientId;
-                    newConsultation.WalkInName = appointment.WalkInName;
+                    newConsultation.WalkInName = appointment.PatientId == null
+                        ? appointment.WalkInName
+                        : null;
+                    newConsultation.AppointmentPatientName = appointment.PatientId != null
+                        ? $"{appointment.Patient.FirstName} {appointment.Patient.LastName}"
+                        : appointment.WalkInName;
                 }
             }
 
@@ -64,8 +69,13 @@ namespace LinkCare_IT15.Controllers
                     PatientId = c.PatientId,
                     PatientName = c.Patient != null
                         ? $"{c.Patient.FirstName} {c.Patient.LastName}"
-                        : (c.Appointment != null ? c.Appointment.WalkInName ?? "Walk-in" : "Walk-in"),
-                    WalkInName = c.Appointment?.WalkInName,
+                        : (!string.IsNullOrWhiteSpace(c.WalkInName)
+                            ? c.WalkInName
+                            : (c.Appointment != null ? c.Appointment.WalkInName ?? "Walk-in" : "Walk-in")),
+                    WalkInName = c.WalkInName,
+                    AppointmentPatientName = c.Appointment?.Patient != null
+                        ? $"{c.Appointment.Patient.FirstName} {c.Appointment.Patient.LastName}"
+                        : c.Appointment?.WalkInName,
                     ChiefComplaint = c.ChiefComplaint,
                     Diagnosis = c.Diagnosis,
                     Prescriptions = c.Prescriptions,
@@ -102,23 +112,21 @@ namespace LinkCare_IT15.Controllers
 
             var doctorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Join prescriptions list
-            string? prescriptionsText = null;
-            if (model.NewConsultation.Prescriptions != null && model.NewConsultation.Prescriptions.Any())
-            {
-                prescriptionsText = string.Join(", ",
-                    model.NewConsultation.Prescriptions.Where(p => !string.IsNullOrWhiteSpace(p)));
-            }
-
             var newConsult = new Consultation
             {
                 DoctorId = doctorId,
-                PatientId = string.IsNullOrEmpty(model.NewConsultation.PatientId) ? null : model.NewConsultation.PatientId,
+                PatientId = string.IsNullOrWhiteSpace(model.NewConsultation.PatientId) ? null : model.NewConsultation.PatientId,
                 AppointmentId = model.NewConsultation.AppointmentId,
+                WalkInName = string.IsNullOrWhiteSpace(model.NewConsultation.PatientId)
+                    ? model.NewConsultation.WalkInName?.Trim()
+                      ?? model.NewConsultation.AppointmentPatientName?.Trim()
+                    : null,
                 Date = DateTime.Now,
                 ChiefComplaint = model.NewConsultation.ChiefComplaint,
                 Diagnosis = model.NewConsultation.Diagnosis,
-                Prescriptions = prescriptionsText,
+                Prescriptions = model.NewConsultation.Prescriptions != null
+                    ? string.Join(", ", model.NewConsultation.Prescriptions.Where(p => !string.IsNullOrWhiteSpace(p)))
+                    : null,
                 Notes = model.NewConsultation.Notes,
                 BloodPressure = model.NewConsultation.BloodPressure,
                 HeartRate = model.NewConsultation.HeartRate,
@@ -128,18 +136,6 @@ namespace LinkCare_IT15.Controllers
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
-
-            // Add walk-in name if applicable
-            if (!string.IsNullOrWhiteSpace(model.NewConsultation.WalkInName))
-            {
-                newConsult.Appointment = await _context.Appointments
-                    .FirstOrDefaultAsync(a => a.Id == model.NewConsultation.AppointmentId);
-
-                if (newConsult.Appointment != null)
-                {
-                    newConsult.Appointment.WalkInName = model.NewConsultation.WalkInName;
-                }
-            }
 
             _context.Consultations.Add(newConsult);
             await _context.SaveChangesAsync();

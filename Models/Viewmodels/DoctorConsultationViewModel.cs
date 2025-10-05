@@ -46,6 +46,8 @@ namespace LinkCare_IT15.Models.ViewModels
         public string? WalkInName { get; set; }
 
 
+        public string? AppointmentPatientName { get; set; }
+
         [Required(ErrorMessage = "Chief Complaint is required")]
         public string ChiefComplaint { get; set; } = string.Empty;
 

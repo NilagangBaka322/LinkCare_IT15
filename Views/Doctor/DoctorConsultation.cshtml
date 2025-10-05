@@ -11,7 +11,6 @@
         <p class="text-muted">Manage patient consultations and medical history</p>
     </div>
 
-    @* Add Bootstrap Icons if not already included *@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Search Bar -->
@@ -21,6 +20,7 @@
         </span>
         <input type="text" id="searchConsultations" class="form-control" placeholder="Search by patient name or complaint..." />
     </div>
+
     <!-- Consultation Records -->
     <div class="lc-card p-4">
         <h5 class="mb-3 fs-4 fw-bold">Consultation Records</h5>
@@ -41,23 +41,20 @@
                                     type="button"
                                     data-bs-toggle="collapse" data-bs-target="#@collapseId"
                                     aria-expanded="false" aria-controls="@collapseId">
-
                                 <div>
                                     <strong>
-                                        @(string.IsNullOrEmpty(consult.PatientName)
-                                            ? (consult.AppointmentPatientName ?? "Walk-in")
-                                            : consult.PatientName)
+                                        @(!string.IsNullOrEmpty(consult.PatientName)
+                                            ? consult.PatientName
+                                            : !string.IsNullOrEmpty(consult.AppointmentPatientName)
+                                            ? consult.AppointmentPatientName
+                                            : consult.WalkInName ?? "Walk-in")
                                     </strong>
-
                                     <div class="small text-muted">
                                         @consult.Date.ToString("yyyy-MM-dd") • @consult.Date.ToString("HH:mm")
                                         <span class="mx-2 text-secondary">|</span>
                                         <em>@consult.ChiefComplaint</em>
                                     </div>
-
                                 </div>
-
-                               
                             </button>
                         </h2>
 
@@ -101,7 +98,6 @@
                                     </div>
                                 }
 
-
                                 <div class="d-flex justify-content-between text-center bg-light p-3 rounded-3 mb-3">
                                     <div>
                                         <i class="bi bi-activity vital-icon text-primary" aria-hidden="true"></i>
@@ -119,7 +115,6 @@
                                         <div class="fw-semibold">@consult.Temperature °C</div>
                                     </div>
                                     <div>
-                                        @* Reliable weighing-scale display: emoji fallback (always shows) *@
                                         <span class="vital-icon" aria-hidden="true">⚖️</span>
                                         <div class="small text-muted">Weight</div>
                                         <div class="fw-semibold">@consult.Weight kg</div>
@@ -147,8 +142,8 @@
             <div class="text-center text-muted p-4">No consultations found.</div>
         }
     </div>
-
 </div>
+
 <!-- New Consultation Modal -->
 <div class="modal fade" id="newConsultationModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -166,28 +161,33 @@
                     <!-- Patient Selection -->
                     <div class="mb-3">
                         <label class="form-label">Patient</label>
-
                         @if (Model.NewConsultation.AppointmentId != null)
                         {
-                                <!-- Auto-filled from appointment -->
-                                <input type="text" class="form-control"
-                                       value="@(Model.NewConsultation.PatientId != null
-                                            ? Model.Patients.FirstOrDefault(p => p.Value == Model.NewConsultation.PatientId)?.Text
-                                            : "Walk-in")"
-                                       readonly />
-                                <input type="hidden" asp-for="NewConsultation.PatientId" />
+                            <!-- Auto-filled from appointment -->
+                            <input type="text" class="form-control"
+                                   value="@(Model.NewConsultation.PatientId != null
+                                        ? Model.Patients.FirstOrDefault(p => p.Value == Model.NewConsultation.PatientId)?.Text
+                                        : Model.NewConsultation.WalkInName ?? "Walk-in")"
+                                   readonly />
+                            <input type="hidden" asp-for="NewConsultation.PatientId" />
                         }
                         else
                         {
-                                <!-- Choose registered patient or walk-in -->
-                                <select asp-for="NewConsultation.PatientId" class="form-select">
-                                    <option value="">-- Walk-in (No Record) --</option>
+                            <!-- Choose registered patient or walk-in -->
+                            <select asp-for="NewConsultation.PatientId" class="form-select">
+                                <option value="">-- Walk-in (No Record) --</option>
                                 @foreach (var patient in Model.Patients)
                                 {
-                                            <option value="@patient.Value">@patient.Text</option>
+                                    <option value="@patient.Value">@patient.Text</option>
                                 }
-                                </select>
+                            </select>
                         }
+                    </div>
+
+                    <!-- Walk-in Name input if no patient selected -->
+                    <div class="mb-3" id="walkInNameContainer" style="display: none;">
+                        <label class="form-label">Walk-in Name</label>
+                        <input type="text" class="form-control" asp-for="NewConsultation.WalkInName" placeholder="Enter walk-in patient name" />
                     </div>
 
                     <!-- Complaint + Diagnosis -->
@@ -241,7 +241,6 @@
                         <span asp-validation-for="NewConsultation.ConsultationFee" class="text-danger"></span>
                     </div>
 
-
                 </div>
 
                 <div class="modal-footer">
@@ -256,14 +255,14 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // 🩺 Auto-open modal if AppointmentId exists
+            // Auto-open modal if AppointmentId exists
             var appointmentId = '@Model.NewConsultation.AppointmentId';
             if (appointmentId && appointmentId !== "0") {
                 var modal = new bootstrap.Modal(document.getElementById('newConsultationModal'));
                 modal.show();
             }
 
-            // 💊 Add Prescription dynamic input
+            // Add Prescription dynamic input
             const addPrescriptionBtn = document.getElementById("addPrescriptionBtn");
             const prescriptionsContainer = document.getElementById("prescriptionsContainer");
 
@@ -277,26 +276,30 @@
                 prescriptionsContainer.appendChild(input);
             });
 
-            // 🔍 Search Consultation Records (by name or complaint)
+            // Show Walk-in Name input dynamically
+            const patientSelect = document.querySelector("select[asp-for='NewConsultation.PatientId']");
+            const walkInContainer = document.getElementById("walkInNameContainer");
+            if (patientSelect) {
+                function toggleWalkInInput() {
+                    walkInContainer.style.display = patientSelect.value ? "none" : "block";
+                }
+                patientSelect.addEventListener("change", toggleWalkInInput);
+                toggleWalkInInput();
+            }
+
+            // Search Consultation Records
             const searchInput = document.getElementById("searchConsultations");
             const accordionItems = document.querySelectorAll(".consultation-accordion .accordion-item");
 
             searchInput?.addEventListener("input", function () {
                 const query = this.value.toLowerCase().trim();
                 let visibleCount = 0;
-
                 accordionItems.forEach(item => {
                     const text = item.textContent.toLowerCase();
                     const match = text.includes(query);
                     item.style.display = match ? "" : "none";
                     if (match) visibleCount++;
                 });
-
-                // Optional: show "No results" message
-                const noResults = document.getElementById("noResults");
-                if (noResults) {
-                    noResults.style.display = visibleCount ? "none" : "";
-                }
             });
         });
     </script>
@@ -306,41 +309,15 @@
     @if (TempData["Success"] != null)
     {
         <text>
-            Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: '@TempData["Success"]'
-            });
+            Swal.fire({ icon: 'success', title: 'Success!', text: '@TempData["Success"]' });
         </text>
     }
     @if (TempData["Error"] != null)
     {
         <text>
-            Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: '@TempData["Error"]'
-            });
+            Swal.fire({ icon: 'error', title: 'Error', text: '@TempData["Error"]' });
         </text>
     }
 
     <partial name="_ValidationScriptsPartial" />
-}
-
-
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    @if (TempData["Success"] != null)
-    {
-        <text>
-                    Swal.fire({ icon: 'success', title: 'Success!', text: '@TempData["Success"]' });
-        </text>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <text>
-                    Swal.fire({ icon: 'error', title: 'Error', text: '@TempData["Error"]' });
-        </text>
-    }
-
-        <partial name="_ValidationScriptsPartial" />
 }
