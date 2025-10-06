@@ -1,28 +1,48 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using LinkCare_IT15.Models.Entities;
 
 namespace LinkCare_IT15.Models
 {
     public class Billing
     {
         [Key]
-        public int BillingId { get; set; }
+        public int BillingID { get; set; }
 
-        [ForeignKey("Consultation")]
-        public int ConsultationId { get; set; }
-        public Consultation Consultation { get; set; }
+        public string? PatientID { get; set; } // Nullable for walk-ins
+        public string? WalkInName { get; set; } // Name for walk-ins
+        public int? AppointmentId { get; set; } // Nullable if no appointment
 
-        [Column(TypeName = "decimal(10,2)")]
+        [Required]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal TotalAmount { get; set; }
 
         public DateTime BillingDate { get; set; } = DateTime.Now;
 
-        // Track if it’s fully paid or pending
-        [MaxLength(20)]
-        public string Status { get; set; } = "Pending"; // or "Paid"
+        // Navigation properties
+        [ForeignKey("PatientID")]
+        public virtual ApplicationUser? Patient { get; set; }
 
-        // Optional: For quick access, even for walk-ins
-        [MaxLength(255)]
-        public string? PatientName { get; set; }
+        [ForeignKey("AppointmentId")]
+        public virtual Appointment? Appointment { get; set; }
+
+        public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+
+        // Calculated properties
+        [NotMapped]
+        public decimal AmountPaid => Transactions?.Sum(t => t.AmountPaid) ?? 0;
+
+        [NotMapped]
+        public decimal RemainingBalance => TotalAmount - AmountPaid;
+
+        [NotMapped]
+        public string Status
+        {
+            get
+            {
+                if (RemainingBalance <= 0) return "Paid";
+                return AmountPaid > 0 ? "Partial" : "Pending";
+            }
+        }
     }
 }

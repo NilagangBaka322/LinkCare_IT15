@@ -1,4 +1,4 @@
-﻿@model LinkCare_IT15.Models.AdminModel.AdminBillingModel
+﻿@model IEnumerable<LinkCare_IT15.Models.Billing>
 
 @{
     ViewBag.Title = "Billing · Link Care";
@@ -12,84 +12,147 @@
     </div>
 
     <div class="lc-card p-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-            <h5 class="mb-2 mb-md-0">
-                <i class="bi bi-receipt me-2"></i> Bill Management
-            </h5>
-            <a asp-action="CreateBill" class="btn btn-primary btn-sm">+ Create Bill</a>
-        </div>
+        <h5 class="mb-3 fw-bold"><i class="bi bi-receipt me-2"></i>Bill Records</h5>
 
-        <!-- Summary -->
-        <div class="row g-3 text-center mb-4">
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="lc-card p-3 shadow-sm h-100">
-                    <h6 class="fw-bold">Total Revenue</h6>
-                    <p class="text-success fs-5 fw-bold">₱@Model.TotalRevenue</p>
-                    <small class="text-muted">All paid bills</small>
+        <!-- Summary Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-3">
+                <div class="lc-card p-3 shadow-sm h-100 text-center">
+                    <h6>Total Revenue</h6>
+                    <p class="text-success fs-5 fw-bold">
+                        ₱@Model.Where(b => b.Transactions.Any(t => t.Status.ToLower() == "paid")).Sum(b => b.TotalAmount)
+                    </p>
+                    <small>All paid bills</small>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="lc-card p-3 shadow-sm h-100">
-                    <h6 class="fw-bold">Pending</h6>
-                    <p class="text-warning fs-5 fw-bold">₱@Model.Pending</p>
-                    <small class="text-muted">Awaiting payment</small>
+            <div class="col-sm-6 col-lg-3">
+                <div class="lc-card p-3 shadow-sm h-100 text-center">
+                    <h6>Pending</h6>
+                    <p class="text-warning fs-5 fw-bold">
+                        ₱@Model.Where(b => !b.Transactions.Any(t => t.Status.ToLower() == "paid")).Sum(b => b.TotalAmount)
+                    </p>
+                    <small>Awaiting payment</small>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="lc-card p-3 shadow-sm h-100">
-                    <h6 class="fw-bold">Overdue</h6>
-                    <p class="text-danger fs-5 fw-bold">₱@Model.Overdue</p>
-                    <small class="text-muted">Past due bills</small>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="lc-card p-3 shadow-sm h-100">
-                    <h6 class="fw-bold">Total Bills</h6>
-                    <p class="fs-5 fw-bold">@Model.TotalBills</p>
-                    <small class="text-muted">All time</small>
+            <div class="col-sm-6 col-lg-3">
+                <div class="lc-card p-3 shadow-sm h-100 text-center">
+                    <h6>Total Bills</h6>
+                    <p class="fs-5 fw-bold">@Model.Count()</p>
+                    <small>All time</small>
                 </div>
             </div>
         </div>
 
-        <!-- Bills Table -->
-        <div>
-            <h6 class="fw-bold mb-2">Bill Records</h6>
-            <p class="small text-muted">@Model.Bills.Count records</p>
+        <!-- Search -->
+        <form method="get" class="mb-3 d-flex">
+            <input type="text" name="search" value="@ViewContext.HttpContext.Request.Query["search"]" class="form-control me-2" placeholder="Search patient or walk-in..." />
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
 
-            <div class="list-group">
-                @foreach (var bill in Model.Bills.OrderByDescending(b => b.Date))
-                {
-                    var badgeClass = bill.Status.ToLower() switch
-                    {
-                        "paid" => "bg-success-subtle text-success",
-                        "pending" => "bg-warning-subtle text-warning",
-                        "overdue" => "bg-danger-subtle text-danger",
-                        _ => "bg-secondary-subtle text-secondary"
-                    };
+        <!-- Billing Table -->
+        <div class="list-group">
+            @foreach (var bill in Model)
+            {
+                var status = bill.Transactions.Any(t => t.Status.ToLower() == "paid") ? "Paid" : "Pending";
+                var badgeClass = status == "Paid" ? "bg-success-subtle text-success" : "bg-warning-subtle text-warning";
 
-                    <div class="list-group-item flex-column flex-md-row d-flex justify-content-between align-items-start align-items-md-center mb-2 rounded shadow-sm">
-                        <div class="mb-2 mb-md-0">
-                            <div class="fw-semibold text-primary">
-                                <i class="bi bi-person me-1"></i> @bill.PatientName
-                            </div>
-                            <div>
-                                <small class="text-muted">@bill.Date.ToString("MMM dd, yyyy")</small> ·
-                                <span>@bill.Services</span>
-                            </div>
-                            <div class="fw-bold">₱@bill.Amount</div>
+                <div class="list-group-item d-flex justify-content-between align-items-center mb-2 rounded shadow-sm">
+                    <div>
+                        <div class="fw-semibold text-primary">
+                            <i class="bi bi-person me-1"></i>
+                            @(bill.Patient != null
+                                ? $"{bill.Patient.FirstName} {bill.Patient.LastName}"
+                                : bill.WalkInName ?? "Walk-in")
                         </div>
-                        <div class="d-flex flex-wrap justify-content-end align-items-center gap-2">
-                            <span class="badge rounded-pill @badgeClass text-capitalize">
-                                @bill.Status
-                            </span>
-                            @if (bill.Status.ToLower() == "pending")
-                            {
-                                <a asp-action="MarkPaid" asp-route-id="@bill.Id" class="btn btn-sm btn-outline-success">Mark Paid</a>
-                            }
-                        </div>
+                        <small class="text-muted">@bill.BillingDate.ToString("MMM dd, yyyy")</small>
+                        <div class="fw-bold">₱@bill.TotalAmount</div>
                     </div>
-                }
-            </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill @badgeClass text-capitalize">@status</span>
+                        @if (status == "Pending")
+                        {
+                            <button type="button" class="btn btn-sm btn-outline-success"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#paymentModal"
+                                    data-billing-id="@bill.BillingID"
+                                    data-amount="@bill.TotalAmount">
+                                Pay Now
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="ProcessPayment" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-cash-stack me-2"></i>Process Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="billingId" name="billingId" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Total Amount</label>
+                        <input type="text" id="totalAmount" class="form-control" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Amount Paid</label>
+                        <input type="number" step="0.01" class="form-control" name="amountPaid" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select name="paymentMethod" class="form-select" required>
+                            <option value="">Select Method</option>
+                            <option>Cash</option>
+                            <option>GCash</option>
+                            <option>Card</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Reference Number (Optional)</label>
+                        <input type="text" name="referenceNumber" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const paymentModal = document.getElementById('paymentModal');
+        paymentModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const billingId = button.getAttribute('data-billing-id');
+            const totalAmount = button.getAttribute('data-amount');
+
+            document.getElementById('billingId').value = billingId;
+            document.getElementById('totalAmount').value = '₱' + parseFloat(totalAmount).toFixed(2);
+        });
+
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                    Swal.fire({ icon: 'success', title: 'Success', text: '@TempData["Success"]' });
+            </text>
+        }
+    </script>
+}

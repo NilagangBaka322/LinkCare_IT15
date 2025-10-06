@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LinkCare_IT15.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251005215851_AddBillingAndTransaction")]
+    [Migration("20251006043041_AddBillingAndTransaction")]
     partial class AddBillingAndTransaction
     {
         /// <inheritdoc />
@@ -159,6 +159,38 @@ namespace LinkCare_IT15.Data.Migrations
                     b.ToTable("Appointments");
                 });
 
+            modelBuilder.Entity("LinkCare_IT15.Models.Billing", b =>
+                {
+                    b.Property<int>("BillingID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BillingID"));
+
+                    b.Property<int?>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("BillingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PatientID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("WalkInName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("BillingID");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("PatientID");
+
+                    b.ToTable("Billings");
+                });
+
             modelBuilder.Entity("LinkCare_IT15.Models.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -283,6 +315,48 @@ namespace LinkCare_IT15.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Doctors");
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.Transaction", b =>
+                {
+                    b.Property<int>("TransactionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionID"));
+
+                    b.Property<decimal>("AmountPaid")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("BillingID")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Change")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReferenceNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("TransactionID");
+
+                    b.HasIndex("BillingID");
+
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -460,6 +534,21 @@ namespace LinkCare_IT15.Data.Migrations
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("LinkCare_IT15.Models.Billing", b =>
+                {
+                    b.HasOne("LinkCare_IT15.Models.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId");
+
+                    b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientID");
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Patient");
+                });
+
             modelBuilder.Entity("LinkCare_IT15.Models.Entities.Doctor", b =>
                 {
                     b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", "User")
@@ -469,6 +558,17 @@ namespace LinkCare_IT15.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.Transaction", b =>
+                {
+                    b.HasOne("LinkCare_IT15.Models.Billing", "Billing")
+                        .WithMany("Transactions")
+                        .HasForeignKey("BillingID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Billing");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -520,6 +620,11 @@ namespace LinkCare_IT15.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.Billing", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("LinkCare_IT15.Models.Entities.ApplicationUser", b =>

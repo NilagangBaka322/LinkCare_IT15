@@ -6,30 +6,33 @@ namespace LinkCare_IT15.Models
     public class Transaction
     {
         [Key]
-        public int TransactionId { get; set; }
+        public int TransactionID { get; set; }
 
-        [ForeignKey("Billing")]
-        public int BillingId { get; set; }
-        public Billing Billing { get; set; }
+        [Required]
+        public int BillingID { get; set; }
 
-        [Column(TypeName = "decimal(10,2)")]
-        public decimal Amount { get; set; }
+        [Required]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal AmountPaid { get; set; }  // Actual amount received
 
-        [Required, MaxLength(50)]
-        public string PaymentMethod { get; set; } = "Cash";
-        // Options: Cash, GCash, Maya, PayMongo, etc.
-
-        [MaxLength(100)]
-        public string? ReferenceNumber { get; set; }
-        // For PayMongo transaction IDs, etc.
-
-        [MaxLength(50)]
-        public string Status { get; set; } = "Pending";
-        // Pending, Paid, Failed, Refunded, etc.
-
-        [MaxLength(100)]
-        public string TransactionType { get; set; } = "Consultation Payment";
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Change { get; set; }      // Change to give back (if cash)
 
         public DateTime TransactionDate { get; set; } = DateTime.Now;
+
+        [Required]
+        public string TransactionType { get; set; } // e.g., "Payment"
+
+        [Required]
+        public string PaymentMethod { get; set; }   // e.g., "Cash", "PayMongo"
+
+        public string? ReferenceNumber { get; set; } // Optional (for PayMongo)
+
+        [Required]
+        public string Status { get; set; }          // "Paid", "Partial", "Pending"
+
+        // Navigation property
+        [ForeignKey("BillingID")]
+        public virtual Billing Billing { get; set; }
     }
 }
