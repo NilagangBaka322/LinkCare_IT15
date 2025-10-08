@@ -1,5 +1,4 @@
-﻿```cshtml
-@using Microsoft.AspNetCore.Identity
+﻿@using Microsoft.AspNetCore.Identity
 @using LinkCare_IT15.Models.Entities
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -74,6 +73,8 @@
                 }
     </style>
 </head>
+<link rel="shortcut icon" href="~/LinkcareLogo.ico" type="image/x-icon" />
+
 <body>
     <!-- HEADER / NAVBAR -->
     <header>
@@ -170,4 +171,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-```
+

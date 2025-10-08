@@ -9,6 +9,12 @@ using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// -------------------- CONFIGURATION --------------------
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+
+
 // -------------------- DATABASE --------------------
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -29,12 +35,12 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 // -------------------- CONTROLLERS / VIEWS / RAZOR PAGES --------------------
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages(); // ✅ Add Razor Pages support
+builder.Services.AddRazorPages();
 
 // -------------------- SERVICES --------------------
 builder.Services.AddScoped<RecaptchaService>();
 builder.Services.AddHttpClient();
-builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // -------------------- SESSION --------------------
 builder.Services.AddDistributedMemoryCache();
@@ -75,18 +81,25 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// -------------------- SEED ROLES --------------------
+// -------------------- DATABASE MIGRATION & SEEDING --------------------
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+
     try
     {
+        var db = services.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+
         await SeedRoles.Initialize(services);
+
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("✅ Database migrated and roles seeded successfully.");
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred seeding the roles.");
+        logger.LogError(ex, "❌ An error occurred while migrating or seeding roles.");
     }
 }
 
@@ -94,8 +107,6 @@ using (var scope = app.Services.CreateScope())
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-// ✅ Map Razor Pages for Identity
 app.MapRazorPages();
 
 app.Run();

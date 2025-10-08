@@ -1,0 +1,320 @@
+﻿@model IEnumerable<LinkCare_IT15.Models.Service>
+@{
+    ViewBag.Title = "Clinic Services · Link Care";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+    var myRequests = ViewBag.MyRequests as List<LinkCare_IT15.Models.ServiceRequest>;
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    /* === Card Design === */
+    .lc-card {
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: none;
+        width: 220px;
+        flex: 0 0 auto;
+    }
+
+        .lc-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .lc-card img {
+            height: 120px;
+            object-fit: cover;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+        }
+
+        .lc-card .p-3 {
+            padding: 0.75rem !important;
+        }
+
+    .lc-card-title {
+        font-weight: 600;
+        color: #444;
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .small-muted {
+        color: #777;
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .text-secondary {
+        font-size: 0.8rem;
+        color: #666 !important;
+    }
+
+    .btn {
+        border-radius: 0.6rem;
+        font-size: 0.8rem;
+        padding: 0.3rem 0.4rem;
+    }
+
+    /* === Scrollable Slider (Limited Width) === */
+    .service-slider-wrapper {
+        position: relative;
+        margin-bottom: 3rem;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .service-slider {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        padding: 0.5rem 1rem 1rem;
+        scrollbar-width: none;
+    }
+
+        .service-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+    /* === Arrow Buttons === */
+    .slider-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: white;
+        border-radius: 50%;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s ease, opacity 0.2s;
+        z-index: 10;
+    }
+
+        .slider-arrow:hover {
+            background: #f1f1f1;
+        }
+
+        .slider-arrow i {
+            font-size: 1.3rem;
+            color: #333;
+        }
+
+        .slider-arrow.left {
+            left: 10px;
+        }
+
+        .slider-arrow.right {
+            right: 10px;
+        }
+
+        .slider-arrow.hidden {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+    /* === Dashboard Header === */
+    .dashboard-header {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 1.2rem 1.8rem;
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .my-requests-container {
+        background: #fff;
+        border-radius: 0.75rem;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .slider-arrow
+
+    {
+        display: none;
+    }
+
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="dashboard-header d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="bi bi-briefcase me-2"></i> Clinic Services</h4>
+            <div class="small">Explore and request services offered by the clinic.</div>
+        </div>
+        <div><i class="bi bi-heart-pulse fs-1 opacity-75"></i></div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <!-- === Scrollable Services Cards === -->
+    <div class="service-slider-wrapper mx-auto" style="max-width: 1190px;">
+        <div class="slider-arrow left" id="arrowLeft" onclick="scrollServices(-1)">
+            <i class="bi bi-chevron-left"></i>
+        </div>
+
+        <div class="service-slider" id="serviceSlider">
+            @foreach (var service in Model)
+            {
+                <div class="lc-card d-flex flex-column">
+                    <img src="@Url.Content(service.ImagePath ?? "~/images/default-service.jpg")"
+                         alt="@service.ServiceName" />
+                    <div class="p-3 flex-grow-1">
+                        <div class="lc-card-title">@service.ServiceName</div>
+                        <p class="small-muted">@service.Description</p>
+                        <p class="text-secondary mb-0">
+                            <i class="bi bi-clock me-1"></i>@service.DurationMinutes mins
+                        </p>
+                    </div>
+                    <div class="p-3 pt-0 text-center">
+                        <button class="btn btn-primary w-100"
+                                data-bs-toggle="modal"
+                                data-bs-target="#requestModal-@service.ServiceId">
+                            <i class="bi bi-send me-1"></i> Request
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal -->
+                <div class="modal fade" id="requestModal-@service.ServiceId" tabindex="-1" aria-labelledby="modalLabel-@service.ServiceId" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="post" asp-controller="ServiceRequest" asp-action="RequestService">
+                                @Html.AntiForgeryToken()
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Request: @service.ServiceName</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" name="serviceId" value="@service.ServiceId" />
+                                    <div class="mb-3">
+                                        <label class="form-label">Start Date</label>
+                                        <input type="datetime-local" name="startDate" class="form-control" required />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">End Date</label>
+                                        <input type="datetime-local" name="endDate" class="form-control" required />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Notes</label>
+                                        <textarea name="notes" class="form-control" rows="3"></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="slider-arrow right" id="arrowRight" onclick="scrollServices(1)">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+    </div>
+
+    <!-- === My Requests === -->
+    <div class="my-requests-container">
+        <h4 class="fw-bold mb-3"><i class="bi bi-calendar-check text-primary me-2"></i> My Service Requests</h4>
+
+        @if (myRequests == null || !myRequests.Any())
+        {
+            <div class="alert alert-info text-center mb-0">You have no service requests yet.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Service</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                            <th>Requested On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var req in myRequests)
+                        {
+                            <tr>
+                                <td>@req.Service.ServiceName</td>
+                                <td>@req.StartDate.ToString("MMM dd, yyyy hh:mm tt")</td>
+                                <td>@req.EndDate.ToString("MMM dd, yyyy hh:mm tt")</td>
+                                <td>
+                                    <span class="badge bg-@(req.Status == "Pending" ? "warning" :
+                                                          req.Status == "Approved" ? "success" :
+                                                          req.Status == "Rejected" ? "danger" : "secondary")">
+                                        @req.Status
+                                    </span>
+                                </td>
+                                <td>@req.Notes</td>
+                                <td>@req.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    const slider = document.getElementById('serviceSlider');
+    const leftArrow = document.getElementById('arrowLeft');
+    const rightArrow = document.getElementById('arrowRight');
+
+    function scrollServices(direction) {
+        const scrollAmount = 250;
+        slider.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        updateArrows();
+    }
+
+    function updateArrows() {
+        const maxScroll = slider.scrollWidth - slider.clientWidth;
+        const currentScroll = slider.scrollLeft;
+
+        // Hide both if no scrolling needed
+        if (maxScroll <= 0) {
+            leftArrow.classList.add('hidden');
+            rightArrow.classList.add('hidden');
+            return;
+        }
+
+        // Toggle visibility based on scroll position
+        leftArrow.classList.toggle('hidden', currentScroll <= 5);
+        rightArrow.classList.toggle('hidden', currentScroll >= maxScroll - 5);
+    }
+
+    // Initial check
+    window.addEventListener('load', updateArrows);
+    slider.addEventListener('scroll', updateArrows);
+    window.addEventListener('resize', updateArrows);
+</script>

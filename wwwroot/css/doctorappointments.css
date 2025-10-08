@@ -300,6 +300,10 @@ Enhanced Modal Design
 #schedule-scrollable {
     overflow-y: auto;
 }
+.disabled-item {
+    pointer-events: none;
+    opacity: 0.6;
+}
 
 /* Optional small screen responsiveness */
 @media (max-width: 992px) {
@@ -307,3 +311,20 @@ Enhanced Modal Design
         max-height: 50vh !important;
     }
 }
+/* =======================
+Disable Click on Completed/Cancelled Appointments
+======================= */
+.schedule-item[data-status="completed"],
+.schedule-item[data-status="cancelled"] {
+    pointer-events: none; /* disables click on entire box */
+    opacity: 0.7; /* slightly dim */
+    cursor: not-allowed; /* show disabled cursor */
+    background-color: #f1f3f5; /* subtle gray tone */
+}
+
+    /* Re-enable click for buttons inside (so tooltips or styles still work visually) */
+    .schedule-item[data-status="completed"] button,
+    .schedule-item[data-status="cancelled"] button {
+        pointer-events: none; /* make sure even buttons can’t be clicked */
+        opacity: 0.8;
+    }

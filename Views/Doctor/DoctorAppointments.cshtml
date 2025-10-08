@@ -4,11 +4,54 @@
     ViewBag.Title = "My Schedule · Link Care";
     Layout = "~/Views/Shared/_DoctorLayout.cshtml";
 }
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+
+        .dashboard-header h3 {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .dashboard-header .small {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .dashboard-header .btn-add-item {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #4facfe;
+            font-weight: 600;
+        }
+
+            .dashboard-header .btn-add-item:hover {
+                background-color: white;
+                color: #007bff;
+            }
+
+    .disabled-btn,
+    .disabled-btn:hover {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+</style>
+
 
 <div class="container-fluid">
-    <div class="mb-3">
-        <h3 class="fw-bold">My Schedule</h3>
-        <p class="text-muted">Manage your appointments and calendar view</p>
+    @* <div class="mb-3"> *@
+    @*     <h3 class="fw-bold">My Schedule</h3> *@
+    @*     <p class="text-muted">Manage your appointments and calendar view</p> *@
+    @* </div> *@
+    <div class="dashboard-header d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="fw-bold">My Schedule</h3>
+            <div class="small">Manage your appointments and calendar view</div>
+        </div>
     </div>
 
     <div class="lc-card p-3 shadow-sm rounded bg-white">
@@ -31,8 +74,11 @@
                 <h6 class="fw-bold mb-2">Scheduled Appointments</h6>
                 <p class="small text-muted">@Model.Schedule.Appointments.Count apts</p>
 
+
                 <div id="schedule-scrollable" class="list-group border rounded p-2 overflow-auto">
-                    @foreach (var appt in Model.Schedule.Appointments.OrderBy(a => a.StartDate))
+                    @foreach (var appt in Model.Schedule.Appointments
+                    .OrderBy(a => a.Status == "Cancelled" ? 1 : 0) // cancelled last
+                    .ThenBy(a => a.StartDate))
                     {
                         var displayName = !string.IsNullOrEmpty(appt.PatientName)
                         ? appt.PatientName
@@ -49,7 +95,8 @@
                             _ => "bg-primary-subtle text-primary"
                         };
 
-                        <div class="list-group-item d-flex justify-content-between align-items-start mb-2 rounded shadow-sm schedule-item"
+                        <div class="list-group-item d-flex justify-content-between align-items-start mb-2 rounded shadow-sm schedule-item
+                            @(statusText == "completed" || statusText == "cancelled" ? "disabled-item" : "")"
                              data-id="@appt.Id"
                              data-patient="@displayName"
                              data-title="@appt.Title"
@@ -70,9 +117,15 @@
 
                                 @if (statusText == "completed")
                                 {
-                                    <button class="btn btn-sm btn-secondary" disabled>
-                                        Consultation Done
-                                    </button>
+                                    <button class="btn btn-sm btn-secondary" disabled>Consultation Done</button>
+                                }
+                                else if (statusText == "cancelled")
+                                {
+                                    <button class="btn btn-sm btn-danger" disabled>Cancelled</button>
+                                }
+                                else if (statusText == "rescheduled")
+                                {
+                                    <button class="btn btn-sm btn-warning" disabled>Rescheduled</button>
                                 }
                                 else
                                 {
@@ -195,7 +248,6 @@
 @section Styles {
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/doctorappointments.css" />
-   
 }
 
 @section Scripts {
@@ -203,7 +255,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // ===========================
         // Pass server-side appointments to JS
+        // ===========================
         window.doctorAppointments = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
         Model.Schedule.Appointments.Select(a => new
         {
@@ -217,7 +271,9 @@
         })
     ));
 
-        // Adjust schedule height dynamically to match calendar
+        // ===========================
+        // Adjust schedule height dynamically
+        // ===========================
         function adjustScheduleHeight() {
             var calendar = document.getElementById('calendar');
             var schedule = document.getElementById('schedule-scrollable');
@@ -230,11 +286,96 @@
         window.addEventListener('load', adjustScheduleHeight);
         window.addEventListener('resize', adjustScheduleHeight);
 
-        // If using FullCalendar instance, adjust after it renders
         if (window.calendar) {
             window.calendar.on('datesSet', adjustScheduleHeight);
         }
+
+        // ===========================
+        // ✅ openRescheduleModal definition
+        // ===========================
+        function openRescheduleModal(id, patient, title, status) {
+            const normalized = status.toLowerCase();
+
+            if (normalized !== "scheduled") {
+                let message = "";
+                if (normalized === "completed") message = "This appointment has already been completed.";
+                else if (normalized === "cancelled") message = "This appointment has been cancelled.";
+                else message = "You can only reschedule scheduled appointments.";
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Action not allowed',
+                    text: message,
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            document.getElementById("reschedPatient").textContent = patient;
+            document.getElementById("reschedTitle").textContent = title;
+            document.getElementById("reschedStatus").textContent = status;
+            document.getElementById("confirmRescheduleBtn").setAttribute("data-id", id);
+
+            $('#rescheduleModal').modal('show');
+        }
     </script>
 
+    <!-- ✅ Appointment interaction scripts -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // ✅ Ensure Cancel button works even if modal opened multiple times
+            const cancelBtn = document.getElementById("cancelScheduleBtn");
+
+            cancelBtn.addEventListener("click", async function () {
+                const apptId = document.getElementById("confirmRescheduleBtn").dataset.id;
+                if (!apptId) {
+                    Swal.fire("⚠️ Error", "No appointment selected to cancel.", "error");
+                    return;
+                }
+
+                const confirm = await Swal.fire({
+                    title: "Cancel this appointment?",
+                    text: "This action cannot be undone.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, cancel it",
+                    cancelButtonText: "No, keep it"
+                });
+
+                if (!confirm.isConfirmed) return;
+
+                try {
+                    const response = await fetch(`/Doctor/CancelAppointment/${apptId}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "RequestVerificationToken":
+                                document.querySelector("input[name='__RequestVerificationToken']")?.value
+                        }
+                    });
+
+                    if (!response.ok) throw new Error("Request failed");
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Swal.fire("✅ Cancelled", "The appointment was cancelled successfully.", "success")
+                            .then(() => {
+                                bootstrap.Modal.getInstance(document.getElementById("rescheduleModal")).hide();
+                                location.reload();
+                            });
+                    } else {
+                        Swal.fire("❌ Error", "Failed to cancel appointment.", "error");
+                    }
+                } catch (err) {
+                    Swal.fire("⚠️ Error", "Could not connect to the server.", "error");
+                }
+            });
+
+        });
+    </script>
+
+    <!-- ✅ Keep this at the very end -->
     <script src="~/js/doctorappointments.js"></script>
 }

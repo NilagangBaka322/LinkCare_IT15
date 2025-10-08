@@ -75,29 +75,129 @@ namespace LinkCare_IT15.Controllers
         // ======================
         // Doctor Dashboard
         // ======================
-        public IActionResult DoctorDashboard()
+        public async Task<IActionResult> DoctorDashboard()
         {
+            var doctorId = _userManager.GetUserId(User);
+            var doctor = await _userManager.Users
+                .Where(u => u.Id == doctorId)
+                .Select(u => new ApplicationUser
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    UserName = u.UserName,
+                    Email = u.Email
+                })
+                .FirstOrDefaultAsync();
+
+            var today = DateTime.Today;
+
+            // 1️⃣ Today's scheduled appointments
+            var todayAppointments = await _context.Appointments
+                .Where(a => a.DoctorId == doctorId &&
+                            a.StartDate.Date == today &&
+                            a.Status == AppointmentStatus.Scheduled)
+                .CountAsync();
+
+            // 2️⃣ Pending appointments (not completed or cancelled)
+            var pendingAppointments = await _context.Appointments
+                .Where(a => a.DoctorId == doctorId &&
+                            a.Status != AppointmentStatus.Completed &&
+                            a.Status != AppointmentStatus.Cancelled)
+                .CountAsync();
+
+            // 3️⃣ Patients under care
+            var patientsUnderCare = await _context.Consultations
+                .Where(c => c.DoctorId == doctorId && !c.IsArchived)
+                .Select(c => c.PatientId)
+                .Distinct()
+                .CountAsync();
+
+            // 4️⃣ Recent consultations (today)
+            var recentConsultations = await _context.Consultations
+                .Include(c => c.Patient)
+                .Where(c => c.DoctorId == doctorId && c.Date.Date == today)
+                .OrderByDescending(c => c.Date)
+                .Take(5)
+                .Select(c => new ActivityViewModel
+                {
+                    Label = "Consultation completed",
+                    User = c.Patient != null
+                        ? $"{c.Patient.FirstName} {c.Patient.LastName}"
+                        : (c.WalkInName ?? "Walk-in Patient"),
+                    Ago = DateTime.Now - c.Date
+                })
+                .ToListAsync();
+
+            // 5️⃣ Upcoming appointments — show all SCHEDULED appointments for today
+            var upcomingAppointments = await _context.Appointments
+                .Include(a => a.Patient)
+                .Where(a => a.DoctorId == doctorId &&
+                            a.Status == AppointmentStatus.Scheduled &&
+                            a.StartDate.Date == today)
+                .OrderBy(a => a.StartDate)
+                .Select(a => new UpcomingAppointmentViewModel
+                {
+                    PatientName = a.Patient != null
+                        ? $"{a.Patient.FirstName} {a.Patient.LastName}"
+                        : (a.WalkInName ?? "Walk-in Patient"),
+                    Time = a.StartDate.ToString("hh:mm tt"),
+                    Title = a.Title ?? "Consultation",
+                    Status = a.Status.ToString()
+                })
+                .ToListAsync();
+
             var model = new DoctorDashboardModel
             {
-                DoctorName = User.Identity.Name,
-                TodayAppointments = 5,
-                PendingConsultations = 2,
-                TotalPatients = 48,
-                RecentActivity = new List<ActivityViewModel>
-                {
-                    new ActivityViewModel { Label="Consultation completed", User="John Doe", Ago=TimeSpan.FromHours(1)},
-                    new ActivityViewModel { Label="Prescription added", User="Jane Smith", Ago=TimeSpan.FromHours(3)}
-                }
+                Doctor = doctor,
+                TodayAppointments = todayAppointments,
+                PendingConsultations = pendingAppointments,
+                TotalPatients = patientsUnderCare,
+                RecentActivity = recentConsultations,
+                UpcomingAppointments = upcomingAppointments
             };
+
             return View(model);
         }
 
         // ======================
         // Doctor Appointments
         // ======================
-        public async Task<IActionResult> DoctorAppointments()
+        public async Task<IActionResult> DoctorAppointments(string filter = null)
         {
             var doctorId = _userManager.GetUserId(User);
+
+            var appointmentsQuery = _context.Appointments
+                .Include(a => a.Patient)
+                .Where(a => a.DoctorId == doctorId && !a.IsArchived)
+                .AsQueryable();
+
+            // Apply filter if requested
+            if (!string.IsNullOrEmpty(filter))
+            {
+                if (filter == "pending")
+                {
+                    appointmentsQuery = appointmentsQuery.Where(a =>
+                        a.Status != AppointmentStatus.Completed && a.Status != AppointmentStatus.Cancelled);
+                }
+                else if (filter == "today")
+                {
+                    appointmentsQuery = appointmentsQuery.Where(a => a.StartDate.Date == DateTime.Today);
+                }
+            }
+
+            var appointments = await appointmentsQuery
+                .Select(a => new AppointmentViewModel
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    StartDate = a.StartDate,
+                    EndDate = a.EndDate,
+                    PatientName = a.Patient != null ? a.Patient.FirstName + " " + a.Patient.LastName : a.WalkInName,
+                    Status = a.Status.ToString(),
+                    Notes = a.Notes
+                })
+                .ToListAsync();
 
             var patientRoleId = await _context.Roles
                 .Where(r => r.Name == "Patient")
@@ -113,22 +213,6 @@ namespace LinkCare_IT15.Controllers
                 })
                 .ToListAsync();
 
-            var appointments = await _context.Appointments
-                .Include(a => a.Patient)
-                .Where(a => a.DoctorId == doctorId && !a.IsArchived)
-                .Select(a => new AppointmentViewModel
-                {
-                    Id = a.Id,
-                    Title = a.Title,
-                    StartDate = a.StartDate,
-                    EndDate = a.EndDate,
-                    PatientName = a.Patient != null ? a.Patient.FirstName + " " + a.Patient.LastName : null,
-                    WalkInName = a.WalkInName,
-                    Status = a.Status.ToString(),
-                    Notes = a.Notes
-                })
-                .ToListAsync();
-
             var model = new DoctorAppointmentsModel
             {
                 Schedule = new DoctorScheduleViewModel
@@ -140,6 +224,7 @@ namespace LinkCare_IT15.Controllers
 
             return View(model);
         }
+
         // ======================
         // Appointment Actions
         // ======================
@@ -158,17 +243,6 @@ namespace LinkCare_IT15.Controllers
 
             await _context.SaveChangesAsync();
             return Json(new { success = true, newStatus = appointment.Status.ToString() });
-        }
-
-        public IActionResult CancelAppointment(int id)
-        {
-            var appt = _context.Appointments.FirstOrDefault(a => a.Id == id);
-            if (appt == null)
-                return Json(new { success = false, message = "Appointment not found" });
-
-            appt.Status = AppointmentStatus.Cancelled;
-            _context.SaveChanges();
-            return Json(new { success = true });
         }
 
         // 🔍 Search Patients (for autocomplete)
@@ -247,18 +321,92 @@ namespace LinkCare_IT15.Controllers
             });
         }
 
+        [HttpPost]
+        
+        public async Task<IActionResult> CancelAppointment(int id)
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment == null)
+                return NotFound();
+
+            appointment.Status = AppointmentStatus.Cancelled;
+            appointment.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, status = appointment.Status.ToString() });
+        }
+
+
         // ======================
         // Doctor Consultation
         //======================
-        
 
-        // ======================
+
         // Doctor Patients
         // ======================
-        public IActionResult DoctorPatients()
+        public async Task<IActionResult> DoctorPatients()
         {
-            return View(new DoctorPatientsModel { Patients = new List<DoctorPatientViewModel>() });
+            var doctorId = _userManager.GetUserId(User);
+
+            // Step 1: Fetch appointments and related patients for this doctor
+            var appointmentData = await _context.Appointments
+                .Include(a => a.Patient)
+                .Where(a => a.DoctorId == doctorId && !a.IsArchived)
+                .ToListAsync(); // Query executes here
+
+            // Step 2: Group and project in memory
+            var patients = appointmentData
+                .GroupBy(a => new
+                {
+                    Id = a.Patient?.Id,
+                    Name = a.Patient != null
+                        ? $"{a.Patient.FirstName} {a.Patient.LastName}"
+                        : (a.WalkInName ?? "Walk-in Patient")
+                })
+                .Select(g =>
+                {
+                    // Determine latest or next appointment for this patient
+                    var nextAppointment = g
+                        .Where(a => a.StartDate >= DateTime.Now)
+                        .OrderBy(a => a.StartDate)
+                        .FirstOrDefault();
+
+                    // Determine prompt based on appointment statuses
+                    string prompt;
+                    if (g.Any(a => a.Status == AppointmentStatus.Completed))
+                        prompt = "Completed";
+                    else if (g.Any(a => a.Status == AppointmentStatus.Rescheduled))
+                        prompt = "Rescheduled";
+                    else if (g.Any(a => a.Status == AppointmentStatus.Scheduled))
+                        prompt = "Scheduled";
+                    else if (g.Any(a => a.Status == AppointmentStatus.Cancelled))
+                        prompt = "Cancelled";
+                    else
+                        prompt = "Pending";
+
+                    return new DoctorPatientViewModel
+                    {
+                        PatientName = g.Key.Name,
+                        Status = prompt,
+                        LastVisit = nextAppointment != null
+                            ? nextAppointment.StartDate
+                            : g.Max(a => a.StartDate)
+                    };
+                })
+                .OrderByDescending(p => p.LastVisit)
+                .ToList();
+
+            var model = new DoctorPatientsModel
+            {
+                TotalPatients = patients.Count,
+                Patients = patients
+            };
+
+            return View(model);
         }
+
+
 
         // ======================
         // Doctor Medical Records

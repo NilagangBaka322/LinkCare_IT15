@@ -6,92 +6,183 @@
     ViewData["ActivePage"] = "Dashboard";
 }
 
-<div class="container-fluid">
-    <div class="mb-2">
-        <h4 class="fw-bold">Dashboard</h4>
-        <div class="text-muted small">Clinic management overview</div>
+<style>
+    .online-appointments-style .lc-card {
+        background: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        padding: 1.5rem; /* same as Doctor Management */
+        border: 1px solid #f1f1f1;
+        transition: all 0.25s ease;
+    }
+
+        .online-appointments-style .lc-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+
+    .online-appointments-style .lc-card-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 1rem;
+        font-size: 1rem; /* match Doctor Management */
+    }
+
+    .online-appointments-style .metric-value {
+        font-size: 1.5rem; /* slightly smaller to match Doctor Management card font */
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Adjust dashboard header */
+    .online-appointments-style .dashboard-header {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 1.5rem 2rem; /* same as Doctor Management */
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .online-appointments-style .dashboard-header h4 {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .online-appointments-style .dashboard-header .small {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .online-appointments-style .dashboard-header i {
+            font-size: 2rem; /* same as Doctor Management */
+            opacity: 0.8;
+        }
+</style>
+
+
+<div class="container-fluid mt-4 online-appointments-style">
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h4 class="mb-0 fw-bold">Welcome Back, Admin 👋</h4>
+            <div class="small">Here’s an overview of your clinic today</div>
+        </div>
+        <div><i class="bi bi-speedometer2 fs-1 opacity-75"></i></div>
     </div>
 
     <!-- Metrics Row -->
-    <div class="row g-3">
-        <div class="col-12 col-lg-3">
-            <div class="lc-card p-3 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="lc-card-title">Today's Appointments</div>
-                    <i class="bi bi-calendar-check"></i>
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="lc-card">
+                <div class="lc-card-title">
+                    <i class="bi bi-calendar-check text-primary"></i>
+                    Today's Appointments
                 </div>
-                <div class="fs-4 fw-bold">@Model.TotalAppointments</div>
+                <div class="metric-value">@Model.TotalAppointments</div>
                 <div class="small-muted">@Model.ScheduledAppointments scheduled</div>
             </div>
         </div>
-        <div class="col-12 col-lg-3">
-            <div class="lc-card p-3 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="lc-card-title">Total Patients</div>
-                    <i class="bi bi-people"></i>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="lc-card">
+                <div class="lc-card-title">
+                    <i class="bi bi-people text-primary"></i>
+                    Total Patients
                 </div>
-                <div class="fs-4 fw-bold">@Model.TotalPatients</div>
+                <div class="metric-value">@Model.TotalPatients</div>
                 <div class="small-muted">Active patients</div>
             </div>
         </div>
-        <div class="col-12 col-lg-3">
-            <div class="lc-card p-3 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="lc-card-title">Monthly Revenue</div>
-                    <i class="bi bi-graph-up"></i>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="lc-card">
+                <div class="lc-card-title">
+                    <i class="bi bi-graph-up text-primary"></i>
+                    Monthly Revenue
                 </div>
-                <div class="fs-4 fw-bold">₱@String.Format("{0:n0}", Model.MonthlyRevenue)</div>
+                <div class="metric-value text-gradient">₱@String.Format("{0:n0}", Model.MonthlyRevenue)</div>
                 <div class="small-muted">+@Model.RevenueGrowth% from last month</div>
             </div>
         </div>
-        <div class="col-12 col-lg-3">
-            <div class="lc-card p-3 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="lc-card-title">Pending Bills</div>
-                    <i class="bi bi-receipt-cutoff"></i>
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="lc-card">
+                <div class="lc-card-title">
+                    <i class="bi bi-receipt-cutoff text-primary"></i>
+                    Pending Bills
                 </div>
-                <div class="fs-4 fw-bold">@Model.PendingBills</div>
+                <div class="metric-value">@Model.PendingBills</div>
                 <div class="small-muted">₱@String.Format("{0:n0}", Model.PendingAmount) outstanding</div>
             </div>
         </div>
     </div>
 
-    <!-- Schedule and Activity -->
-    <div class="row g-3 mt-1">
+    <!-- Schedule + Activity -->
+    <div class="row g-4">
         <div class="col-12 col-lg-8">
-            <div class="lc-card p-3">
-                <div class="lc-card-title mb-2"><i class="bi bi-clock-history me-2"></i>Today's Schedule</div>
-                <ul class="list-plain">
-                    @foreach (var appt in Model.TodayAppointments)
-                    {
-                        <li>
-                            <div>
-                                <div class="fw-semibold">@appt.PatientName</div>
-                                <div class="small-muted"><i class="bi bi-calendar2 me-1"></i>@appt.Start.ToString("h:mm tt - ") @appt.Title</div>
-                            </div>
-                            <span class="badge rounded-pill badge-soft">@appt.Status</span>
-                        </li>
-                    }
-                </ul>
+            <div class="lc-card h-100">
+                <div class="lc-card-title">
+                    <i class="bi bi-clock-history text-primary"></i>Today's Schedule
+                </div>
+                @if (Model.TodayAppointments.Any())
+                {
+                    <ul class="list-plain">
+                        @foreach (var appt in Model.TodayAppointments)
+                        {
+                            <li>
+                                <div>
+                                    <div class="fw-semibold">@appt.PatientName</div>
+                                    <div class="small-muted">
+                                        <i class="bi bi-calendar2 me-1"></i>
+                                        @appt.Start.ToString("h:mm tt") — @appt.Title
+                                    </div>
+                                </div>
+                                <span class="badge-soft">@appt.Status</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-muted fst-italic">No appointments scheduled for today.</div>
+                }
             </div>
         </div>
 
         <div class="col-12 col-lg-4">
-            <div class="lc-card p-3 h-100">
-                <div class="lc-card-title mb-2"><i class="bi bi-activity me-2"></i>Recent Activity</div>
-                <ul class="timeline ps-0">
-                    @foreach (var a in Model.RecentActivity)
+            <div class="lc-card h-100">
+                <div class="lc-card-title">
+                    <i class="bi bi-activity text-primary"></i>Recent Activity
+                </div>
+                <div class="activity-box">
+                    @if (Model.RecentActivity.Any())
                     {
-                        <li>
-                            <span class="dot"></span>
-                            <div>
-                                <div class="fw-semibold">@a.Label</div>
-                                <div class="small-muted">@a.User</div>
-                            </div>
-                        </li>
+                        <ul class="timeline">
+                            @foreach (var a in Model.RecentActivity)
+                            {
+                                <li>
+                                    <span class="dot"></span>
+                                    <div>
+                                        <div class="fw-semibold">@a.Label</div>
+                                        <div class="small-muted">@a.User</div>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
                     }
-                </ul>
+                    else
+                    {
+                        <div class="text-muted fst-italic">No recent activities yet.</div>
+                    }
+                </div>
             </div>
         </div>
     </div>
 </div>
+

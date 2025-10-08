@@ -33,7 +33,8 @@ namespace LinkCare_IT15.Models
         public decimal AmountPaid => Transactions?.Sum(t => t.AmountPaid) ?? 0;
 
         [NotMapped]
-        public decimal RemainingBalance => TotalAmount - AmountPaid;
+        public decimal RemainingBalance => Math.Max(TotalAmount - AmountPaid, 0);
+
 
         [NotMapped]
         public string Status

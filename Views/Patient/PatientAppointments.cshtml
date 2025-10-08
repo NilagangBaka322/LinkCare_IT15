@@ -1,77 +1,254 @@
-﻿@model IEnumerable<LinkCare_IT15.Models.PatientModel.PatientAppointmentsModel>
+﻿@model IEnumerable<LinkCare_IT15.Models.Entities.Doctor>
 
 @{
-    ViewBag.Title = "My Appointments · Link Care";
+    ViewBag.Title = "Book an Appointment · Link Care";
     Layout = "~/Views/Shared/_PatientLayout.cshtml";
 }
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    /* === Unified Modern Design === */
+    .dashboard-header {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .lc-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: none;
+    }
+
+        .lc-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+    .lc-card-title {
+        font-weight: 600;
+        color: #444;
+        font-size: 1rem;
+        letter-spacing: 0.2px;
+    }
+
+    /* Search styling (same as Consultations & Dashboard) */
+    .input-group-text {
+        background-color: #007bff;
+        color: white;
+        border-right: none;
+    }
+
+    .input-group .form-control {
+        border-left: none;
+    }
+
+    /* Doctor card consistency */
+    .doctor-card .card {
+        border-radius: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .doctor-card .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .text-muted {
+        color: #777 !important;
+    }
+
+    .small-muted {
+        color: #888;
+        font-size: 0.9rem;
+    }
+
+    /* Empty state */
+    .empty-state {
+        padding: 4rem 1rem;
+        text-align: center;
+        color: #888;
+    }
+
+        .empty-state i {
+            color: #007bff;
+            opacity: 0.5;
+        }
+
+    /* Modal styling */
+    .modal-content {
+        border-radius: 1rem;
+        border: none;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
 <div class="container-fluid">
-    <div class="mb-3">
-        <h3 class="fw-bold">My Appointments</h3>
-        <p class="text-muted">View your scheduled appointments and medical visits</p>
+    <!-- Gradient Header -->
+    <div class="dashboard-header d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-1">Book an Appointment</h4>
+            <div class="small">Select a doctor below to schedule your consultation.</div>
+        </div>
+        <div><i class="bi bi-calendar-plus fs-1 opacity-75"></i></div>
     </div>
 
+    <!-- Doctor Listing Card -->
     <div class="lc-card p-4">
-        <h5 class="mb-3">My Appointment Schedule</h5>
-        <p class="text-muted">Your upcoming and past appointments</p>
+        <div class="lc-card-title mb-3 d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-person-badge text-primary me-2"></i> Available Doctors</span>
+        </div>
+        <p class="text-muted mb-4">Choose your preferred doctor from the list below.</p>
 
-        <!-- Search + Filter -->
-        <div class="d-flex flex-wrap mb-3">
-            <div class="me-auto mb-2">
-                <input type="text" class="form-control" placeholder="Search by doctor name or appointment type..." />
-            </div>
-            <div>
-                <select class="form-select">
-                    <option>All Status</option>
-                    <option>Scheduled</option>
-                    <option>Completed</option>
-                    <option>Cancelled</option>
-                </select>
-            </div>
+        <!-- Search Bar -->
+        <div class="input-group mb-4">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchBox" class="form-control" placeholder="Search doctor or specialty...">
         </div>
 
-        <!-- Table -->
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Patient</th>
-                        <th>Doctor</th>
-                        <th>Date & Time</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var appt in Model)
-                        {
-                            <tr>
-                                <td>@appt.PatientName</td>
-                                <td>@appt.DoctorName</td>
-                                <td>@appt.Start.ToString("yyyy-MM-dd hh:mm tt")</td>
-                                <td>@appt.Type</td>
-                                <td>
-                                    <span class="badge bg-primary">@appt.Status</span>
-                                </td>
-                                <td class="text-end">
-                                    <button class="btn btn-outline-danger btn-sm">Cancel</button>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="6" class="text-center text-muted">
-                                No appointments found.
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <!-- Doctor Cards -->
+        <div class="row" id="doctorCards">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var doctor in Model)
+                {
+                    <div class="col-md-4 mb-4 doctor-card">
+                        <div class="card h-100 border-0 shadow-sm text-center p-3">
+                            <div class="mb-3">
+                                <i class="bi bi-person-circle text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="card-title mb-1">Dr. @doctor.User.FirstName @doctor.User.LastName</h5>
+                            <p class="text-muted mb-1">@doctor.Specialty</p>
+
+                            @if (!string.IsNullOrEmpty(doctor.User.Email))
+                            {
+                                <p class="small-muted mb-0"><i class="bi bi-envelope me-1"></i>@doctor.User.Email</p>
+                            }
+                            else if (!string.IsNullOrEmpty(doctor.User.PhoneNumber))
+                            {
+                                <p class="small-muted mb-0"><i class="bi bi-telephone me-1"></i>@doctor.User.PhoneNumber</p>
+                            }
+                            else
+                            {
+                                <p class="small-muted mb-0"><i class="bi bi-exclamation-circle me-1"></i>No contact info available</p>
+                            }
+
+                            <!-- Book Appointment Button -->
+                            <button type="button" class="btn btn-primary btn-sm mt-3 w-100"
+                                    onclick="openAppointmentModal(@doctor.DoctorId)">
+                                <i class="bi bi-calendar-plus"></i> Book Appointment
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="bi bi-emoji-frown display-6 d-block mb-3"></i>
+                    <p>No available doctors at the moment.</p>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+<!-- Book Appointment Modal -->
+<div class="modal fade" id="bookAppointmentModal" tabindex="-1" aria-labelledby="bookAppointmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookAppointmentModalLabel">Book Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="appointmentForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="doctorId" name="DoctorId" />
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Appointment Title</label>
+                        <input type="text" class="form-control" id="title" name="Title" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">Start Date & Time</label>
+                        <input type="datetime-local" class="form-control" id="startDate" name="StartDate" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">End Date & Time</label>
+                        <input type="datetime-local" class="form-control" id="endDate" name="EndDate" required />
+                    </div>
+
+                    <div id="appointmentAlert" class="alert d-none"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitAppointment">Book Appointment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Doctor search/filter
+        function filterDoctors() {
+            const input = document.getElementById("searchBox").value.toLowerCase();
+            const cards = document.querySelectorAll(".doctor-card");
+
+            cards.forEach(card => {
+                const name = card.querySelector(".card-title").innerText.toLowerCase();
+                const specialty = card.querySelector(".text-muted").innerText.toLowerCase();
+                card.style.display = (name.includes(input) || specialty.includes(input)) ? "" : "none";
+            });
+        }
+
+        document.getElementById("searchBox").addEventListener("input", filterDoctors);
+
+        // Open modal and set doctor info
+        function openAppointmentModal(doctorId) {
+            const modal = new bootstrap.Modal(document.getElementById('bookAppointmentModal'));
+            document.getElementById('doctorId').value = doctorId;
+            modal.show();
+        }
+
+        // Submit appointment via existing API
+        document.getElementById('submitAppointment').addEventListener('click', async () => {
+            const form = document.getElementById('appointmentForm');
+            const doctorId = document.getElementById('doctorId').value;
+            const title = document.getElementById('title').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            const response = await fetch('/Patient/CreateAppointment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ DoctorId: doctorId, Title: title, StartDate: startDate, EndDate: endDate })
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                Swal.fire('Error', 'Error booking appointment: ' + text, 'error');
+                return;
+            }
+
+            Swal.fire('Success', 'Appointment booked successfully!', 'success')
+                .then(() => location.reload());
+        });
+    </script>
+}

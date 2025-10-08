@@ -4,7 +4,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http:/http://linkcare.runasp.net/",
+      "applicationUrl": "http://localhost:30353",
       "sslPort": 44344
     }
   },
@@ -17,7 +17,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
-    },  
+    },
     "https": {
       "commandName": "Project",
       "dotnetRunMessages": true,

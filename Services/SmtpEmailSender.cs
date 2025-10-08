@@ -4,33 +4,38 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 
-public class SmtpEmailSender : IEmailSender
+public class EmailSender : IEmailSender
 {
-    private readonly IConfiguration _configuration;
+    private readonly IConfiguration _config;
 
-    public SmtpEmailSender(IConfiguration configuration)
+    public EmailSender(IConfiguration config)
     {
-        _configuration = configuration;
+        _config = config;
     }
 
     public async Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
-        var smtpHost = _configuration["Smtp:Host"];
-        var smtpPort = int.Parse(_configuration["Smtp:Port"]);
-        var smtpUser = _configuration["Smtp:Username"];
-        var smtpPass = _configuration["Smtp:Password"];
-        var fromEmail = _configuration["Smtp:From"];
+        var smtpSettings = _config.GetSection("Smtp");
 
-        using var client = new SmtpClient(smtpHost, smtpPort)
+        var client = new SmtpClient(smtpSettings["Host"])
         {
-            Credentials = new NetworkCredential(smtpUser, smtpPass),
-            EnableSsl = true
+            Port = int.Parse(smtpSettings["Port"]),
+            Credentials = new NetworkCredential(
+                smtpSettings["Username"],
+                smtpSettings["Password"]
+            ),
+            EnableSsl = bool.Parse(smtpSettings["EnableSsl"])
         };
 
-        var mailMessage = new MailMessage(fromEmail, email, subject, htmlMessage)
+        var mailMessage = new MailMessage
         {
+            From = new MailAddress(smtpSettings["From"]),
+            Subject = subject,
+            Body = htmlMessage,
             IsBodyHtml = true
         };
+
+        mailMessage.To.Add(email);
 
         await client.SendMailAsync(mailMessage);
     }

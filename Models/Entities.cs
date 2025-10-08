@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using LinkCare_IT15.Models;
+
+
 
 namespace LinkCare_IT15.Models.Entities
 {
@@ -16,7 +19,7 @@ namespace LinkCare_IT15.Models.Entities
     public DateTime? DateOfBirth { get; set; }
 
 
-    // Navigation properties
+        // Navigation properties
     public ICollection<Consultation> ConsultationsAsDoctor { get; set; } = new List<Consultation>();
     public ICollection<Consultation> ConsultationsAsPatient { get; set; } = new List<Consultation>();
 

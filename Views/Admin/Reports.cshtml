@@ -1,152 +1,593 @@
-﻿@{
-    ViewData["Title"] = "Reports & Analytics";
+﻿@model LinkCare_IT15.Models.AdminModel.ReportsViewModel
+
+@{
+    ViewBag.Title = "Clinic Reports · Link Care";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid py-4">
-    <h2 class="fw-bold mb-1">Reports & Analytics</h2>
-    <p class="text-muted">Clinic performance insights and data analysis</p>
+<style>
+    /* === Dashboard Theme === */
+    .dashboard-header {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+    }
 
-    <!-- Report Selector -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <div class="mb-2">
-            <select class="form-select w-auto d-inline" onchange="showReport(this.value)">
-                <option value="overview">📊 Overview Report</option>
-                <option value="revenue">💰 Revenue Analysis</option>
-                <option value="patient">🧑‍⚕️ Patient Analytics</option>
-            </select>
-        </div>
-        <button class="btn btn-primary">Export Report</button>
-    </div>
+    .lc-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
 
-    <!-- Overview Report -->
-    <div id="overviewReport">
-        <!-- Stat Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted">Total Patients</h6>
-                        <h4 class="fw-bold">6</h4>
-                        <small class="text-success">Active patients</small>
-                    </div>
-                </div>
-            </div>
+        .lc-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
 
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted">Appointments</h6>
-                        <h4 class="fw-bold">14</h4>
-                        <small>This month</small>
-                    </div>
-                </div>
-            </div>
+    .lc-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #777;
+        margin-bottom: 0.25rem;
+    }
 
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted">Revenue</h6>
-                        <h4 class="fw-bold text-success">$17,800</h4>
-                        <small>This month</small>
-                    </div>
-                </div>
-            </div>
+    .lc-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #222;
+    }
 
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted">Consultations</h6>
-                        <h4 class="fw-bold">2</h4>
-                        <small>Completed</small>
-                    </div>
-                </div>
-            </div>
-        </div>
+    /* === Card Styles with Colored Borders === */
+    .bg-revenue {
+        background: white;
+        border: 3px solid #4caf50;
+        color: #4caf50;
+    }
 
-        <!-- Charts Section -->
-        <div class="row g-3">
-            <div class="col-12 col-lg-6 d-flex">
-                <div class="card shadow-sm flex-fill">
-                    <div class="card-header fw-bold">Appointment Status Distribution</div>
-                    <div class="card-body d-flex justify-content-center align-items-center">
-                        <canvas id="appointmentChart"></canvas>
-                    </div>
-                </div>
-            </div>
+    .bg-equipment {
+        background: white;
+        border: 3px solid #ff9800;
+        color: #ff9800;
+    }
 
-            <div class="col-12 col-lg-6 d-flex">
-                <div class="card shadow-sm flex-fill">
-                    <div class="card-header fw-bold">Daily Patient Count</div>
-                    <div class="card-body">
-                        <canvas id="dailyPatientChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    .bg-consumables {
+        background: white;
+        border: 3px solid #f44336;
+        color: #f44336;
+    }
 
-    <!-- Revenue Report -->
-    <div id="revenueReport" class="d-none">
-        @Html.Partial("_RevenueReport")
-    </div>
+    .bg-net {
+        background: white;
+        border: 3px solid #2196f3;
+        color: #2196f3;
+    }
 
-    <!-- Patient Report -->
-    <div id="patientReport" class="d-none">
-        @Html.Partial("_PatientReport")
+        /* Hover Effects */
+        .bg-revenue:hover,
+        .bg-equipment:hover,
+        .bg-consumables:hover,
+        .bg-net:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            transition: 0.2s ease;
+        }
+
+    /* === Charts === */
+    .chart-container {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+    }
+
+    canvas {
+        width: 100% !important;
+        height: 350px !important;
+    }
+
+    /* === Summary Table === */
+    .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+        .summary-table th,
+        .summary-table td {
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .summary-table th {
+            background-color: #f7f7f7;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .summary-table tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        .summary-table td {
+            color: #333;
+        }
+
+    #printSection {
+        display: none;
+    }
+    /* === PRINT STYLES === */
+    @@media print {
+        body *
+    
+    {
+        visibility: hidden;
+    }
+    @@page {
+            size: A4;
+            margin: 2cm;
+        }
+    #printSection,
+    #printSection * {
+        visibility: visible;
+    }
+
+    #printSection {
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white;
+        padding: 2rem;
+        color: #000;
+    }
+
+    /* Print Header Styles */
+    .print-header {
+        display: flex;
+        align-items: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .print-logo {
+        width: 70px;
+        height: auto;
+        margin-right: 1rem;
+    }
+
+    .print-header-text h2 {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: bold;
+    }
+
+    .print-header-text p {
+        margin: 0.2rem 0;
+        font-size: 0.9rem;
+    }
+
+    .page-break {
+        page-break-before: always;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    }
+</style>
+
+
+<div class="dashboard-header">
+    <h2 class="fw-bold mb-0">Full Reports Overview</h2>
+    <p class="mb-0">Comprehensive insights into clinic performance, operations, and financials.</p>
+
+    <div>
+        <button type="button"
+                class="btn btn-light btn-sm no-print"
+                onclick="printReportSection()">
+            <i class="bi bi-printer me-1"></i>
+            Print Detailed Report
+        </button>
+
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    function showReport(type) {
-        document.getElementById("overviewReport").classList.add("d-none");
-        document.getElementById("revenueReport").classList.add("d-none");
-        document.getElementById("patientReport").classList.add("d-none");
 
-        if (type === "overview") document.getElementById("overviewReport").classList.remove("d-none");
-        if (type === "revenue") document.getElementById("revenueReport").classList.remove("d-none");
-        if (type === "patient") document.getElementById("patientReport").classList.remove("d-none");
-    }
+<!-- Printable Section -->
+<div id="printSection">
+    <!-- === Print Header === -->
+    <div class="print-header">
+        <img src="~/lib/assets/LinkcareLogo.jpg" alt="Link Care Logo" class="print-logo" />
+        <div class="print-header-text">
+            <h2>Link Care Clinic</h2>
+            <p><strong>Comprehensive Monthly Report</strong></p>
+            <p>Date Generated: @DateTime.Now.ToString("MMMM dd, yyyy")</p>
+        </div>
+    </div>
 
-    // Pie Chart
-    new Chart(document.getElementById("appointmentChart"), {
-        type: 'pie',
-        data: {
-            labels: ["Completed", "Pending"],
-            datasets: [{
-                data: [11, 3],
-                backgroundColor: ["#3b82f6", "#10b981"]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+    <!-- === Cover / Executive Summary === -->
+    <section>
+        <h3 class="fw-bold mb-2">Executive Summary</h3>
+        <p>
+            This monthly performance report provides a complete overview of Link Care Clinic’s operational,
+            clinical, and financial activities. It summarizes patient engagement, medical services rendered,
+            and overall revenue performance during the period from
+            <strong>@Model.StartDate.ToString("MMMM dd, yyyy")</strong> to
+            <strong>@Model.EndDate.ToString("MMMM dd, yyyy")</strong>.
+        </p>
+
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>Key Metric</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Total Appointments</td><td>@Model.TotalAppointments</td></tr>
+                <tr><td>Total Consultations</td><td>@Model.TotalConsultations</td></tr>
+                <tr><td>Total Patients</td><td>@Model.TotalPatients</td></tr>
+                <tr><td>Active Doctors</td><td>@Model.ActiveDoctors</td></tr>
+                <tr><td>Total Revenue</td><td>₱@Model.TotalRevenue.ToString("N2")</td></tr>
+                <tr><td>Equipment Cost</td><td>₱@Model.TotalEquipmentCost.ToString("N2")</td></tr>
+                <tr><td>Consumables Cost</td><td>₱@Model.TotalConsumableCost.ToString("N2")</td></tr>
+                <tr style="border-top: 2px solid #ccc;">
+                    <td><strong>Net Revenue</strong></td>
+                    <td><strong>₱@Model.NetRevenue.ToString("N2")</strong></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="page-break"></div>
+    </section>
+
+    <!-- === Equipment Details === -->
+    <section>
+        <h3 class="fw-bold mb-3">Equipment Details</h3>
+        @if (Model.Equipments != null && Model.Equipments.Any())
+        {
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Unit Cost (₱)</th>
+                        <th>Total Cost(₱)</th>
+                        <th>Acquired Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var eq in Model.Equipments)
+                    {
+                        <tr>
+                            <td>@eq.Name</td>
+                            <td>@eq.Category</td>
+                            <td>@eq.Quantity</td>
+                            <td>@eq.PurchaseCost.ToString("N2")</td>
+                            <td>@eq.TotalCost.ToString("N2")</td>
+                            <td>@eq.AcquiredDate.ToShortDateString()</td>
+                      
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>No equipment data available for this period.</p>
+        }
+        <div class="page-break"></div>
+    </section>
+
+    <!-- === Consumables Details === -->
+    <section>
+        <h3 class="fw-bold mb-3">Consumables Details</h3>
+        @if (Model.Consumables != null && Model.Consumables.Any())
+        {
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Total Quantity</th>
+                        <th>Unit Cost (₱)</th>
+                        <th>Total Cost (₱)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model.Consumables)
+                    {
+                        <tr>
+                            <td>@c.Name</td>
+                            <td>@c.Category</td>
+                            <td>@c.TotalQuantity</td>
+                            <td>@c.UnitCost.ToString("N2")</td>
+                            <td>@c.TotalCost.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>No consumable data available for this period.</p>
+        }
+        <div class="page-break"></div>
+    </section>
+
+    @* <!-- === Doctor Performance Section === --> *@
+    @* <section> *@
+    @*     <h3 class="fw-bold mb-3">Doctor Performance Summary</h3> *@
+    @*     @if (Model.DoctorPerformances != null && Model.DoctorPerformances.Any()) *@
+    @*     { *@
+    @*         <table class="summary-table"> *@
+    @*             <thead> *@
+    @*                 <tr> *@
+    @*                     <th>Doctor Name</th> *@
+    @*                     <th>Patients Seen</th> *@
+    @*                     <th>Appointments Handled</th> *@
+    @*                     <th>Revenue Generated (₱)</th> *@
+    @*                 </tr> *@
+    @*             </thead> *@
+    @*             <tbody> *@
+    @*                 @foreach (var doc in Model.DoctorPerformances) *@
+    @*                 { *@
+    @*                     <tr> *@
+    @*                         <td>@doc.DoctorName</td> *@
+    @*                         <td>@doc.PatientsSeen</td> *@
+    @*                         <td>@doc.AppointmentsHandled</td> *@
+    @*                         <td>@doc.RevenueGenerated.ToString("N2")</td> *@
+    @*                     </tr> *@
+    @*                 } *@
+    @*             </tbody> *@
+    @*         </table> *@
+    @*     } *@
+    @*     else *@
+    @*     { *@
+    @*         <p>No doctor performance data available for this period.</p> *@
+    @*     } *@
+    @* </section> *@
+
+    @* <div class="page-break"></div> *@
+
+    @* <!-- === Service Performance Section === --> *@
+    @* <section> *@
+    @*     <h3 class="fw-bold mb-3">Top Services Performance</h3> *@
+    @*     @if (Model.TopServices != null && Model.TopServices.Any()) *@
+    @*     { *@
+    @*         <table class="summary-table"> *@
+    @*             <thead> *@
+    @*                 <tr> *@
+    @*                     <th>Service Name</th> *@
+    @*                     <th>Times Used</th> *@
+    @*                     <th>Total Revenue (₱)</th> *@
+    @*                 </tr> *@
+    @*             </thead> *@
+    @*             <tbody> *@
+    @*                 @foreach (var s in Model.TopServices) *@
+    @*                 { *@
+    @*                     <tr> *@
+    @*                         <td>@s.ServiceName</td> *@
+    @*                         <td>@s.TimesUsed</td> *@
+    @*                         <td>@s.TotalRevenue.ToString("N2")</td> *@
+    @*                     </tr> *@
+    @*                 } *@
+    @*             </tbody> *@
+    @*         </table> *@
+    @*     } *@
+    @*     else *@
+    @*     { *@
+    @*         <p>No service data available for this period.</p> *@
+    @*     } *@
+    @* </section> *@
+
+    @* <div class="page-break"></div> *@
+
+    <!-- === Financial Breakdown === -->
+    <section>
+        <h3 class="fw-bold mb-3">Financial Summary Breakdown</h3>
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Amount (₱)</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Billings (Income)</td>
+                    <td>@Model.TotalBilling.ToString("N2")</td>
+                    <td>Revenue from patient services</td>
+                </tr>
+                <tr>
+                    <td>Equipment Cost</td>
+                    <td>@Model.TotalEquipmentCost.ToString("N2")</td>
+                    <td>Machinery, diagnostics, and devices</td>
+                </tr>
+                <tr>
+                    <td>Consumables</td>
+                    <td>@Model.TotalConsumableCost.ToString("N2")</td>
+                    <td>Medical supplies and disposables</td>
+                </tr>
+                <tr style="border-top: 2px solid #ccc;">
+                    <td><strong>Net Revenue</strong></td>
+                    <td><strong>@Model.NetRevenue.ToString("N2")</strong></td>
+                    <td>Total profit after expenses</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+
+<div class="container-fluid">
+    <!-- === Financial Overview Cards === -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="lc-card bg-revenue">
+                <div class="lc-label">Total Revenue</div>
+                <div class="lc-value">₱@Model.TotalRevenue.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="lc-card bg-equipment">
+                <div class="lc-label">Equipment Cost</div>
+                <div class="lc-value">₱@Model.TotalEquipmentCost.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="lc-card bg-consumables">
+                <div class="lc-label">Consumables Cost</div>
+                <div class="lc-value">₱@Model.TotalConsumableCost.ToString("N2")</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="lc-card bg-net">
+                <div class="lc-label">Net Revenue</div>
+                <div class="lc-value">₱@Model.NetRevenue.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === Operational Summary === -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="lc-card">
+                <div class="lc-label">Total Appointments</div>
+                <div class="lc-value">@Model.TotalAppointments</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="lc-card">
+                <div class="lc-label">Consultations</div>
+                <div class="lc-value">@Model.TotalConsultations</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="lc-card">
+                <div class="lc-label">Total Patients</div>
+                <div class="lc-value">@Model.TotalPatients</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="lc-card">
+                <div class="lc-label">Active Doctors</div>
+                <div class="lc-value">@Model.ActiveDoctors</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === Charts Section === -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="chart-container">
+                <h5 class="fw-bold mb-3">Monthly Revenue Trend</h5>
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h5 class="fw-bold mb-3">Patient Breakdown</h5>
+                <canvas id="patientChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- === Detailed Financial Breakdown === -->
+    <div class="lc-card mt-4">
+        <h5 class="fw-bold mb-3">Financial Summary Breakdown</h5>
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Amount (₱)</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Billings (Income)</strong></td>
+                    <td>@Model.TotalBilling.ToString("N2")</td>
+                    <td>Total charges collected from patients and services</td>
+                </tr>
+                <tr>
+                    <td>Equipment Cost</td>
+                    <td>@Model.TotalEquipmentCost.ToString("N2")</td>
+                    <td>Purchased clinic machines and tools</td>
+                </tr>
+                <tr>
+                    <td>Consumables Cost</td>
+                    <td>@Model.TotalConsumableCost.ToString("N2")</td>
+                    <td>Supplies, gloves, syringes, etc.</td>
+                </tr>
+                <tr style="border-top: 2px solid #ccc;">
+                    <td><strong>Net Revenue</strong></td>
+                    <td><strong>@Model.NetRevenue.ToString("N2")</strong></td>
+                    <td>Revenue - (Equipment + Consumables)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+
+        function printReportSection() {
+            window.print();
+        }
+        // === Net Revenue Bar Chart (Single Value) ===
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Net Revenue'], // Only one label
+                datasets: [{
+                    label: 'Net Revenue (₱)',
+                    data: [@Model.TotalRevenue], // Single value in array
+                    backgroundColor: 'rgba(76, 175, 80, 0.6)',
+                    borderColor: '#4caf50',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true },
+                    x: { ticks: { color: '#555' } }
                 }
             }
-        }
-    });
+        });
 
-    // Bar Chart
-    new Chart(document.getElementById("dailyPatientChart"), {
-        type: 'bar',
-        data: {
-            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-            datasets: [{
-                label: "Patients",
-                data: [12, 15, 18, 14, 16, 9, 5],
-                backgroundColor: "#3b82f6"
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true }
+        // === Patient Breakdown Chart ===
+        const patientCtx = document.getElementById('patientChart').getContext('2d');
+        new Chart(patientCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Patients.Select(p => p.Category))),
+                datasets: [{
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Patients.Select(p => p.Count))),
+                    backgroundColor: ['#42a5f5', '#66bb6a', '#ffa726', '#ab47bc'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: { legend: { position: 'bottom' } }
             }
-        }
-    });
-</script>
+        });
+    </script>
+}
+
+

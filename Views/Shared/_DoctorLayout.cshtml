@@ -1,5 +1,4 @@
-﻿
-@* Views/Shared/_DoctorLayout.cshtml *@
+﻿@* Views/Shared/_DoctorLayout.cshtml *@
 @{
     Layout = null;
     var title = ViewBag.Title as string ?? "Link Care · Smart Clinic System";
@@ -8,13 +7,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="shortcut icon" href="~/LinkcareLogo.ico" type="image/x-icon" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@title</title>
 
     <!-- Bootstrap 5 + Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+
+    @RenderSection("Styles", required: false)
 
     <style>
         :root {
@@ -26,49 +30,50 @@
             --lc-text: #0f172a;
         }
 
-        html, body {
-            height: 100%;
-        }
-
         body {
             background: var(--lc-bg);
             color: var(--lc-text);
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         }
 
-        /* Layout */
+        /* === Layout === */
         .lc-shell {
             display: grid;
-            grid-template-columns: 260px 1fr;
+            grid-template-columns: 240px 1fr;
             min-height: 100vh;
-            transition: grid-template-columns 0.3s;
+            transition: grid-template-columns 0.3s ease;
         }
 
             .lc-shell.collapsed {
                 grid-template-columns: 70px 1fr;
             }
 
-        /* Sidebar */
+        /* === Sidebar === */
         .lc-sidebar {
             background: linear-gradient(180deg, var(--lc-primary) 0%, var(--lc-primary-600) 100%);
             color: #fff;
             padding: 1rem 0.75rem;
-            transition: width 0.3s, padding 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
             overflow: hidden;
+            position: relative;
         }
 
         .lc-shell.collapsed .lc-sidebar {
             width: 70px;
-            padding: 1rem 0.25rem;
+            padding: 1rem 0.4rem;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Brand */
+        /* === Brand === */
         .lc-brand {
             display: flex;
             align-items: center;
             gap: .5rem;
             padding: .5rem .75rem;
-            margin-bottom: .5rem;
             white-space: nowrap;
         }
 
@@ -83,141 +88,252 @@
             display: none;
         }
 
-        /* Nav links */
+        /* === Burger Button === */
+        #toggleSidebar {
+            color: #fff;
+            background: none;
+            border: none;
+            margin-left: auto;
+            transition: transform .3s ease;
+        }
+
+            #toggleSidebar:hover {
+                transform: scale(1.1);
+                color: #dbeafe;
+            }
+
+        /* Center burger when collapsed */
+        .lc-shell.collapsed #toggleSidebar {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
+        }
+
+        /* === Nav Links === */
         .lc-nav a {
             display: flex;
             align-items: center;
-            gap: .6rem;
+            gap: .75rem;
             color: #e5e7eb;
             text-decoration: none;
-            padding: .65rem .85rem;
+            padding: .6rem .8rem;
             border-radius: .75rem;
+            transition: background .2s, transform .1s;
             font-weight: 500;
-            white-space: nowrap;
-            transition: background .2s, transform .15s;
+            position: relative;
         }
 
-            .lc-nav a:hover, .lc-nav a.active {
+            .lc-nav a:hover {
                 background: rgba(255,255,255,.15);
-                color: #fff;
-                transform: translateX(3px);
+                transform: translateX(2px);
             }
 
-        .lc-shell.collapsed .lc-nav a span {
+            .lc-nav a.active {
+                background: rgba(255,255,255,.25);
+                color: #fff;
+            }
+
+                .lc-nav a.active::before {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 4px;
+                    height: 60%;
+                    border-radius: 2px;
+                    background-color: #fff;
+                }
+
+        .lc-shell.collapsed .lc-nav a {
+            justify-content: center;
+            padding: .75rem 0;
+        }
+
+            .lc-shell.collapsed .lc-nav a i {
+                margin: 0;
+                font-size: 1.3rem;
+            }
+
+            .lc-shell.collapsed .lc-nav a span {
+                display: none;
+            }
+
+        /* === Logout Button === */
+        .lc-logout {
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+
+            .lc-logout button {
+                color: #fff;
+                text-align: left;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                gap: .5rem;
+                padding: .6rem .75rem;
+                border-radius: .75rem;
+                background: none;
+                border: none;
+            }
+
+                .lc-logout button:hover {
+                    background: rgba(255,255,255,.15);
+                }
+
+        .lc-shell.collapsed .lc-logout span {
             display: none;
         }
 
-        /* Content */
-        .lc-content {
-            padding: 1rem 1.5rem;
+        .lc-sidebar {
+            height: 100vh;
+            overflow-y: auto;
         }
 
-        /* Topbar */
+        /* === Topbar === */
         .lc-topbar {
             display: flex;
             justify-content: flex-end;
             align-items: center;
             gap: .5rem;
+            padding: 1rem;
             margin-bottom: 1rem;
         }
 
-            .lc-topbar .btn {
-                border-radius: .75rem;
-            }
-
-        /* Cards */
         .lc-card {
             background: var(--lc-card);
             border: 1px solid var(--lc-border);
             border-radius: 1rem;
             box-shadow: 0 4px 20px rgba(2,6,23,.04);
         }
-    </style>
-    @RenderSection("Styles", required: false)
-</head>
 
+        .lc-content {
+            background: var(--lc-bg);
+            padding: 1.5rem 2rem;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        .lc-inner {
+            max-width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container-fluid {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        /* === FIX: remove unwanted top spacing above dashboard header === */
+        main.lc-content,
+        .content-wrapper,
+        .container-fluid {
+            margin-top: 0 !important;
+            padding-top: 0 !important; /* keep small breathing room */
+        }
+    </style>
+</head>
 <body>
     <div class="lc-shell">
         <!-- Sidebar -->
         <aside class="lc-sidebar">
-            <div class="lc-brand">
-                <span class="dot"></span>
-                <div>
-                    <div class="fw-bold">Link Care</div>
-                    <div class="small" style="opacity:.85">Smart Clinic System</div>
+            <div>
+                <div class="lc-brand position-relative">
+                    <div>
+                        <div class="fw-bold">Link Care</div>
+                        <div class="small" style="opacity:.85">Smart Clinic System</div>
+                    </div>
+                    <button id="toggleSidebar" class="ms-auto" title="Toggle Sidebar">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
                 </div>
+
+                <div class="px-3 text-uppercase small mt-2" style="opacity:.85">Doctor</div>
+                <nav class="lc-nav mt-2">
+                    <a href="/Doctor/DoctorDashboard" data-page="Dashboard"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
+                    <a href="/Doctor/DoctorAppointments" data-page="Appointments"><i class="bi bi-calendar-event"></i> <span>Appointments</span></a>
+                    <a href="/Doctor/Consultation" data-page="Consultations"><i class="bi bi-journal-text"></i> <span>Consultations</span></a>
+                    <a href="/Doctor/DoctorPatients" data-page="Patients"><i class="bi bi-people"></i> <span>Patients</span></a>
+                </nav>
             </div>
 
-            <div class="px-2 text-uppercase small" style="opacity:.85">Doctor</div>
-            <nav class="lc-nav mt-2">
-                <a class="@(activePage == "Dashboard" ? "active" : "")" href="/Doctor/DoctorDashboard">
-                    <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
-                </a>
-                <a class="@(activePage == "Appointments" ? "active" : "")" href="/Doctor/DoctorAppointments">
-                    <i class="bi bi-calendar-event"></i> <span>Appointments</span>
-                </a>
-                <a class="@(activePage == "Consultations" ? "active" : "")" href="/Doctor/Consultation">
-                    <i class="bi bi-journal-text"></i> <span>Consultation</span>
-                </a>
-                <a class="@(activePage == "Patients" ? "active" : "")" href="/Doctor/DoctorPatients">
-                    <i class="bi bi-people"></i> <span>Patients</span>
-                </a>
-                <a class="@(activePage == "MedicalRecords" ? "active" : "")" href="/Doctor/DoctorMedicalRecords">
-                    <i class="bi bi-journal-medical"></i> <span>Medical Records</span>
-                </a>
-            </nav>
+            <!-- Logout -->
+            <div class="lc-logout mt-auto">
+                <button type="button" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                    <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
+                </button>
+            </div>
         </aside>
 
         <!-- Main content -->
         <main class="lc-content">
-            <div class="lc-topbar">
-                <button id="toggleSidebar" class="btn btn-outline-secondary me-auto">
-                    <i class="bi bi-list"></i>
-                </button>
-                <div class="dropdown">
-                    <button class="btn lc-card py-2 px-3 dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="bi bi-person-circle me-2"></i> Doctor User
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                        <li><a href="#" class="dropdown-item"><i class="bi bi-gear me-2"></i>Settings</a></li>
-                        <li>
-                            <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="dropdown-item p-0">
-                                <button type="submit" class="btn btn-link text-dark w-100 text-start">
-                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
+            <div class="lc-inner">
+                <div class="lc-topbar"></div>
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="logoutModalLabel"><i class="bi bi-box-arrow-right me-2"></i>Confirm Logout</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to log out of your doctor account?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form asp-area="Identity" asp-page="/Account/Logout" method="post">
+                        <button type="submit" class="btn btn-danger">Logout</button>
+                    </form>
                 </div>
             </div>
-
-            @RenderBody()
-        </main>
+        </div>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-
     <script>
         const shell = document.querySelector(".lc-shell");
         const toggleBtn = document.getElementById("toggleSidebar");
+        const navLinks = document.querySelectorAll(".lc-nav a");
 
-        // Load saved state
+        // Sidebar state persistence
         if (localStorage.getItem("doctorSidebarState") === "collapsed") {
             shell.classList.add("collapsed");
         }
 
         toggleBtn.addEventListener("click", () => {
             shell.classList.toggle("collapsed");
-            // Save state
-            if (shell.classList.contains("collapsed")) {
-                localStorage.setItem("doctorSidebarState", "collapsed");
-            } else {
-                localStorage.setItem("doctorSidebarState", "expanded");
-            }
+            localStorage.setItem("doctorSidebarState", shell.classList.contains("collapsed") ? "collapsed" : "expanded");
+        });
+
+        // Highlight active link
+        const currentPage = localStorage.getItem("doctorActivePage");
+        if (currentPage) {
+            navLinks.forEach(link => {
+                if (link.dataset.page === currentPage) {
+                    link.classList.add("active");
+                }
+            });
+        }
+
+        // Save active page on click
+        navLinks.forEach(link => {
+            link.addEventListener("click", () => {
+                localStorage.setItem("doctorActivePage", link.dataset.page);
+            });
         });
     </script>
 

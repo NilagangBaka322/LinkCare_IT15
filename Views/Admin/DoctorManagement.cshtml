@@ -1,34 +1,209 @@
 ﻿@model LinkCare_IT15.Models.AdminModel.AdminDoctorsModel
+
 @{
     ViewData["Title"] = "Doctor Management";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid py-4">
-    <h2 class="fw-bold mb-1">Doctor Management</h2>
-    <p class="text-muted">Register new doctors and manage their account status</p>
+<style>
+    /* === ONLINE APPOINTMENTS STYLE SCOPE === */
+    .online-appointments-style {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fc;
+    }
 
-    <div class="lc-card p-3 mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="fw-semibold"><i class="bi bi-person-badge me-2"></i>Registered Doctors</div>
-            <div>
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
-                    <i class="bi bi-person-plus"></i> Register Doctor
-                </button>
+        .online-appointments-style .dashboard-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .online-appointments-style .dashboard-header h4 {
+                font-weight: 700;
+                margin-bottom: 0.25rem;
+            }
+
+            .online-appointments-style .dashboard-header .small {
+                font-size: 0.95rem;
+                opacity: 0.9;
+            }
+
+            .online-appointments-style .dashboard-header i {
+                font-size: 2rem;
+                opacity: 0.8;
+            }
+
+        .online-appointments-style .lc-card {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            border: 1px solid #f1f1f1;
+            transition: all 0.25s ease;
+        }
+
+            .online-appointments-style .lc-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            }
+
+        .online-appointments-style .lc-card-title {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .online-appointments-style .table-container {
+            overflow-x: auto;
+            max-height: 65vh;
+            border-radius: 1rem;
+            border: 1px solid #eee;
+        }
+
+        .online-appointments-style .table {
+            min-width: 900px;
+            margin-bottom: 0;
+        }
+
+        .online-appointments-style thead th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            z-index: 1;
+            font-weight: 600;
+        }
+
+        .online-appointments-style .table th,
+        .online-appointments-style .table td {
+            vertical-align: middle;
+            padding: .75rem 1rem;
+        }
+
+        .online-appointments-style .btn-primary {
+            border-radius: .5rem;
+            transition: all .2s ease;
+        }
+
+            .online-appointments-style .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 12px rgba(0, 123, 255, 0.3);
+            }
+
+        .online-appointments-style .btn-outline-primary {
+            border-radius: .5rem;
+        }
+
+        .online-appointments-style .alert {
+            border-radius: 1rem;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+        }
+
+        .online-appointments-style .modal-content {
+            border-radius: 1rem;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+        }
+
+        .online-appointments-style .modal-header,
+        .online-appointments-style .modal-footer {
+            border: none;
+        }
+
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .online-appointments-style .dashboard-header
+
+    {
+        flex-direction: column;
+        text-align: left;
+        gap: 1rem;
+    }
+
+    .online-appointments-style .table-container {
+        max-height: 50vh;
+    }
+
+    }
+
+    @@media (max-width: 576px) {
+        .online-appointments-style .dashboard-header h4
+
+    {
+        font-size: 1.3rem;
+    }
+
+    .online-appointments-style .table th,
+    .online-appointments-style .table td {
+        font-size: .85rem;
+        white-space: nowrap;
+    }
+
+    .online-appointments-style .btn,
+    .online-appointments-style .btn-primary,
+    .online-appointments-style .btn-outline-primary {
+        font-size: .85rem;
+        padding: .4rem .75rem;
+    }
+
+    }
+</style>
+
+<div class="container-fluid online-appointments-style">
+
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div>
+            <h4 class="mb-0 fw-bold">Doctor Management</h4>
+            <div class="small">Manage doctor accounts, specialties, and status</div>
+        </div>
+        <i class="bi bi-person-badge"></i>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Card -->
+    <div class="lc-card">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+            <div class="lc-card-title">
+                <i class="bi bi-person-lines-fill text-primary"></i>Registered Doctors
             </div>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
+                <i class="bi bi-person-plus me-1"></i>Register Doctor
+            </button>
         </div>
 
-        <!-- Search form -->
-        <form method="get" class="mb-3" asp-action="DoctorManagement" asp-controller="Admin">
-            <div class="input-group">
-                <input name="search" value="@Model.SearchTerm" type="text" class="form-control" placeholder="Search by name, email, specialty, or license number..." />
-                <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
-            </div>
+        <!-- Search -->
+        <form method="get" class="mb-3 d-flex" style="max-width: 400px;" asp-action="DoctorManagement" asp-controller="Admin">
+            <input name="search" value="@Model.SearchTerm" type="text" class="form-control me-2" placeholder="Search by name, email, specialty, or license..." />
+            <button class="btn btn-outline-primary px-4" type="submit"><i class="bi bi-search"></i></button>
         </form>
 
-        <!-- Doctors table -->
-        <div class="table-responsive">
-            <table class="table align-middle">
+        <!-- Scrollable Table -->
+        <div class="table-container">
+            <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
                         <th>Doctor</th>
@@ -54,12 +229,21 @@
                                     <div>@d.Phone</div>
                                     <div class="small text-muted">Last login: @(d.LastLogin?.ToString("yyyy-MM-dd") ?? "—")</div>
                                 </td>
-                                <td><span class="badge rounded-pill badge-soft">@d.Specialty</span></td>
+                                <td>
+                                    @if (string.IsNullOrEmpty(d.Specialty))
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-light text-dark border">@d.Specialty</span>
+                                    }
+                                </td>
                                 <td>@d.LicenseNumber</td>
                                 <td>
                                     @if (d.IsActive)
                                     {
-                                        <span class="badge bg-primary">Active</span>
+                                        <span class="badge bg-success">Active</span>
                                     }
                                     else
                                     {
@@ -68,15 +252,11 @@
                                 </td>
                                 <td>@d.Registered.ToString("yyyy-MM-dd")</td>
                                 <td class="text-end">
-                                    <a asp-action="DoctorDetails" asp-controller="Admin" asp-route-id="@d.DoctorId" class="btn btn-outline-secondary btn-sm me-1">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-
                                     <form asp-action="ToggleDoctorStatus" asp-controller="Admin" method="post" class="d-inline">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@d.DoctorId" />
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-toggle-on"></i>
+                                        <button type="submit" class="btn btn-sm @(d.IsActive ? "btn-outline-danger" : "btn-outline-success")" title="@(d.IsActive ? "Deactivate" : "Activate")">
+                                            <i class="bi @(d.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
                                         </button>
                                     </form>
                                 </td>
@@ -95,29 +275,41 @@
     </div>
 </div>
 
-<!-- ---------------- Register Doctor Modal ---------------- -->
+<!-- Register Doctor Modal -->
 <div class="modal fade" id="addDoctorModal" tabindex="-1" aria-labelledby="addDoctorModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addDoctorModalLabel">Register New Doctor</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title fw-bold" id="addDoctorModalLabel">
+                    <i class="bi bi-person-plus me-2"></i>Register New Doctor
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form asp-action="RegisterDoctor" asp-controller="Admin" method="post">
                     @Html.AntiForgeryToken()
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
                             <label class="form-label">First Name</label>
                             <input asp-for="NewDoctor.FirstName" class="form-control" />
                             <span asp-validation-for="NewDoctor.FirstName" class="text-danger"></span>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6">
                             <label class="form-label">Last Name</label>
                             <input asp-for="NewDoctor.LastName" class="form-control" />
                             <span asp-validation-for="NewDoctor.LastName" class="text-danger"></span>
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Gender</label>
+                        <select asp-for="NewDoctor.Gender" class="form-select">
+                            <option value="">-- Select Gender --</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                        <span asp-validation-for="NewDoctor.Gender" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
@@ -133,6 +325,12 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input asp-for="NewDoctor.Address" class="form-control" />
+                        <span asp-validation-for="NewDoctor.Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">Specialty</label>
                         <input asp-for="NewDoctor.Specialty" class="form-control" />
                         <span asp-validation-for="NewDoctor.Specialty" class="text-danger"></span>
@@ -144,21 +342,21 @@
                         <span asp-validation-for="NewDoctor.LicenseNumber" class="text-danger"></span>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
                             <label class="form-label">Password</label>
                             <input asp-for="NewDoctor.Password" type="password" class="form-control" />
                             <span asp-validation-for="NewDoctor.Password" class="text-danger"></span>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6">
                             <label class="form-label">Confirm Password</label>
                             <input asp-for="NewDoctor.ConfirmPassword" type="password" class="form-control" />
                             <span asp-validation-for="NewDoctor.ConfirmPassword" class="text-danger"></span>
                         </div>
                     </div>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <div class="modal-footer mt-3">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Register Doctor</button>
                     </div>
                 </form>

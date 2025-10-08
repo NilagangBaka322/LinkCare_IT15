@@ -3,70 +3,194 @@
     var summary = ViewBag.Summary as LinkCare_IT15.Models.PatientModel.BillingSummaryViewModel;
     ViewBag.Title = "My Bills & Payments · Link Care";
     Layout = "~/Views/Shared/_PatientLayout.cshtml";
+    var currentSearch = ViewData["CurrentSearch"] as string ?? "";
+    var currentStatus = ViewData["CurrentStatus"] as string ?? "";
 }
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    /* === Shared Modern Dashboard Design === */
+    .dashboard-header {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 1rem;
+        margin-bottom: 1.75rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .lc-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: none;
+        padding: 1.75rem;
+    }
+
+        .lc-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+    /* === KPI Card Style === */
+    .metric-card {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        height: 100%;
+        gap: 0.5rem;
+    }
+
+    .metric-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .metric-icon {
+        font-size: 1.4rem;
+        color: #0d6efd;
+    }
+
+    .metric-title {
+        font-weight: 600;
+        color: #333;
+        font-size: 1rem;
+    }
+
+    .metric-value {
+        display: block;
+        width: 100%;
+        text-align: right;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #222;
+    }
+
+    .metric-subtext {
+        text-align: left;
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+
+    /* === Table and Filters === */
+    .lc-card-title {
+        font-weight: 600;
+        color: #444;
+        font-size: 1rem;
+        letter-spacing: 0.2px;
+    }
+
+    .filter-form input.form-control {
+        width: 320px;
+        height: 34px;
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+
+    .filter-form select {
+        height: 34px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+    .filter-form .btn {
+        height: 34px;
+        border-radius: 8px;
+        padding: 0 14px;
+        font-size: 0.9rem;
+    }
+
+    /* === Consistent Vertical Spacing === */
+    .row.g-3 {
+        --bs-gutter-x: 1.5rem;
+        --bs-gutter-y: 1.75rem;
+    }
+
+    .status-text {
+        font-size: 0.95rem;
+        letter-spacing: 0.3px;
+    }
+</style>
+
 <div class="container-fluid">
-    <div class="mb-3">
-        <h3 class="fw-bold">My Bills & Payments</h3>
-        <p class="text-muted">View your medical bills and payment history</p>
+    <!-- Header -->
+    <div class="dashboard-header d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-1">My Bills & Payments</h4>
+            <div class="small">View your medical bills and payment history</div>
+        </div>
+        <div><i class="bi bi-credit-card-2-front fs-1 opacity-75"></i></div>
     </div>
 
-    <!-- Summary cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="lc-card p-3">
-                <h5>Total Paid</h5>
-                <h4 class="fw-bold text-success">₱@summary.TotalPaid</h4>
-                <small class="text-muted">Total amount paid</small>
+    <!-- KPI Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="lc-card metric-card">
+                <div class="metric-header">
+                    <i class="bi bi-cash-coin metric-icon text-success"></i>
+                    <span class="metric-title">Total Paid</span>
+                </div>
+                <span class="metric-value text-success">₱@summary.TotalPaid</span>
+                <div class="metric-subtext">Total amount paid</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="lc-card p-3">
-                <h5>Pending</h5>
-                <h4 class="fw-bold text-warning">₱@summary.Pending</h4>
-                <small class="text-muted">Awaiting payment</small>
+
+        <div class="col-md-4">
+            <div class="lc-card metric-card">
+                <div class="metric-header">
+                    <i class="bi bi-hourglass-split metric-icon text-warning"></i>
+                    <span class="metric-title">Pending</span>
+                </div>
+                <span class="metric-value text-warning">₱@summary.Pending</span>
+                <div class="metric-subtext">Awaiting payment</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="lc-card p-3">
-                <h5>Overdue</h5>
-                <h4 class="fw-bold text-danger">₱@summary.Overdue</h4>
-                <small class="text-muted">Past due bills</small>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="lc-card p-3">
-                <h5>Total Bills</h5>
-                <h4 class="fw-bold">@summary.TotalBills</h4>
-                <small class="text-muted">Your bills</small>
+
+        <div class="col-md-4">
+            <div class="lc-card metric-card">
+                <div class="metric-header">
+                    <i class="bi bi-receipt metric-icon text-primary"></i>
+                    <span class="metric-title">Total Bills</span>
+                </div>
+                <span class="metric-value">@summary.TotalBills</span>
+                <div class="metric-subtext">Your total number of bills</div>
             </div>
         </div>
     </div>
 
     <!-- Bills Table -->
     <div class="lc-card p-4">
-        <h5 class="mb-3">My Bills</h5>
-        <p class="text-muted">Your medical bills and payment status</p>
-
-        <div class="d-flex flex-wrap mb-3">
-            <div class="me-auto mb-2">
-                <input type="text" class="form-control" placeholder="Search by service or date..." />
-            </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <select class="form-select">
-                    <option>All Status</option>
-                    <option>Paid</option>
-                    <option>Pending</option>
-                    <option>Overdue</option>
-                </select>
+                <h5 class="lc-card-title mb-1">My Bills</h5>
+                <p class="text-muted mb-0">Your medical bills and payment status</p>
             </div>
+            <i class="bi bi-wallet2 text-primary fs-5"></i>
         </div>
 
+        <!-- Search + Filter -->
+        <form method="get" class="filter-form d-flex flex-wrap mb-4 align-items-center">
+            <div class="me-auto mb-2 d-flex align-items-center" style="gap: 8px;">
+                <input type="text" name="search" value="@currentSearch"
+                       class="form-control form-control-sm"
+                       placeholder="Search by doctor or service..." />
+
+                <button class="btn btn-primary btn-sm d-flex align-items-center" type="submit">
+                    <i class="bi bi-search me-1"></i>Search
+                </button>
+            </div>
+        </form>
+
+        <!-- Bills Table -->
         <div class="table-responsive">
             <table class="table align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Patient</th>
+                        <th>Doctor</th>
                         <th>Date</th>
                         <th>Services</th>
                         <th>Total</th>
@@ -80,29 +204,33 @@
                         foreach (var bill in Model)
                         {
                             <tr>
-                                <td>@bill.PatientName</td>
-                                <td>@bill.BillDate.ToString("yyyy-MM-dd")</td>
+                                <td>@bill.DoctorName</td>
+                                <td>@bill.BillDate.ToString("MMM dd, yyyy")</td>
                                 <td>
-                                    @bill.Services[0] <br />
+                                    @bill.Services[0]
                                     @if (bill.Services.Count > 1)
                                     {
+                                        <br />
                                         <small class="text-muted">+@((bill.Services.Count - 1)) more</small>
                                     }
                                 </td>
-                                <td>₱@bill.TotalAmount</td>
+                                <td class="fw-semibold">₱@bill.TotalAmount</td>
                                 <td>
-                                    <span class="badge @(bill.Status == "Paid" ? "bg-success" : bill.Status == "Pending" ? "bg-warning" : "bg-danger")">
-                                        @bill.Status.ToLower()
+                                    <span class="status-text @(bill.Status == "Paid" ? "text-success fw-semibold"
+                                        : bill.Status == "Pending" ? "text-warning fw-semibold"
+                                        : "text-muted fw-semibold")">
+                                        @bill.Status
                                     </span>
                                 </td>
                                 <td class="text-end">
                                     @if (bill.PaymentDate.HasValue)
                                     {
-                                        <span class="text-muted">Paid: @bill.PaymentDate.Value.ToString("yyyy-MM-dd")</span>
+                                        <span class="text-muted">Paid: @bill.PaymentDate.Value.ToString("MMM dd, yyyy")</span>
                                     }
                                     else
                                     {
-                                        <button class="btn btn-outline-primary btn-sm">Pay Now</button>
+                                        <a href="@Url.Action("PayBill", "Patient", new { billingId = bill.BillId })"
+                                           class="btn btn-outline-primary btn-sm px-3 py-1">Pay Now</a>
                                     }
                                 </td>
                             </tr>
@@ -111,7 +239,10 @@
                     else
                     {
                         <tr>
-                            <td colspan="6" class="text-center text-muted">No bills found.</td>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="bi bi-file-earmark-x fs-4 d-block mb-2"></i>
+                                No bills found.
+                            </td>
                         </tr>
                     }
                 </tbody>

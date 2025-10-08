@@ -138,10 +138,24 @@ namespace LinkCare_IT15.Controllers
             };
 
             _context.Consultations.Add(newConsult);
+
+            // ✅ Mark the related appointment as Completed
+            if (model.NewConsultation.AppointmentId.HasValue)
+            {
+                var appointment = await _context.Appointments.FindAsync(model.NewConsultation.AppointmentId.Value);
+                if (appointment != null)
+                {
+                    appointment.Status = AppointmentStatus.Completed;
+                    appointment.UpdatedAt = DateTime.Now;
+                    _context.Appointments.Update(appointment);
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Consultation saved successfully!";
             return RedirectToAction("DoctorConsultation", new { appointmentId = model.NewConsultation.AppointmentId });
         }
+
     }
 }

@@ -1,5 +1,4 @@
 ﻿
-
 @page
 @using LinkCare_IT15.Models.Entities
 @inject SignInManager<ApplicationUser> SignInManager
@@ -12,8 +11,8 @@
     ViewData["Title"] = "Login";
 }
 
-<section class="vh-100">
-    <div class="container py-5 h-100">
+<section class="vh-60">
+    <div class="container py-5 h-90">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col-12 col-md-8 col-lg-6 col-xl-5">
                 <div class="card shadow-2-strong" style="border-radius: 1rem;">
@@ -36,13 +35,11 @@
 
                             <div class="form-outline mb-4 text-start">
                                 <input asp-for="Input.Email" class="form-control form-control-lg" placeholder="Email" autocomplete="username" />
-                                <label asp-for="Input.Email" class="form-label"></label>
                                 <span asp-validation-for="Input.Email" class="text-danger"></span>
                             </div>
 
                             <div class="form-outline mb-4 text-start">
                                 <input asp-for="Input.Password" type="password" class="form-control form-control-lg" placeholder="Password" autocomplete="current-password" />
-                                <label asp-for="Input.Password" class="form-label"></label>
                                 <span asp-validation-for="Input.Password" class="text-danger"></span>
                             </div>
 
