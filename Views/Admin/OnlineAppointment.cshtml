@@ -1,0 +1,197 @@
+﻿@model IEnumerable<LinkCare_IT15.Models.ServiceRequest>
+
+@{
+    ViewBag.Title = "Online Appointments · Link Care";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var doctors = ViewBag.Doctors as IEnumerable<LinkCare_IT15.Models.Entities.ApplicationUser>;
+    ViewData["ActivePage"] = "OnlineAppointment";
+}
+
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+
+        .dashboard-header h3 {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .dashboard-header .small {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+    .disabled-btn,
+    .disabled-btn:hover {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* === Status Text (Modern UI Style) === */
+    .status-text {
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.05);
+    }
+
+    .status-pending {
+        color: #ca8a04; /* amber */
+    }
+
+    .status-approved {
+        color: #16a34a; /* green */
+    }
+
+    .status-rejected {
+        color: #dc2626; /* red */
+    }
+
+    .status-completed {
+        color: #2563eb; /* blue */
+    }
+
+    .status-other {
+        color: #6b7280; /* neutral gray */
+    }
+
+    table thead {
+        background-color: #e0f2fe;
+        color: #1e293b;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    else if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="dashboard-header d-flex justify-content-between align-items-center">
+        <div>
+            <h3>Online Appointments</h3>
+            <div class="small">Manage and monitor service requests submitted by patients</div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Patient</th>
+                        <th>Service</th>
+                        <th>Assigned Doctor</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Notes</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var req in Model)
+                        {
+                            bool isCompletedOrRejected = req.Status == "Completed" || req.Status == "Rejected";
+                            bool isDoctorAssigned = !string.IsNullOrEmpty(req.DoctorId);
+
+                            <tr>
+                                <td>@req.RequestId</td>
+                                <td>@(req.Patient != null ? req.Patient.FirstName + " " + req.Patient.LastName : "Unknown")</td>
+                                <td>@req.Service?.ServiceName</td>
+
+                                <!-- Doctor Assignment Column -->
+                                <td>
+                                    @if (!isDoctorAssigned && !isCompletedOrRejected)
+                                    {
+                                        <form asp-action="AssignDoctor" asp-controller="ServiceRequest" method="post" class="d-flex">
+                                            <input type="hidden" name="requestId" value="@req.RequestId" />
+                                            <select name="doctorId" class="form-select form-select-sm me-2">
+                                                <option value="">-- Select Doctor --</option>
+                                                @if (doctors != null)
+                                                {
+                                                    foreach (var doc in doctors)
+                                                    {
+                                                        var isSelected = req.DoctorId == doc.Id ? "selected" : "";
+                                                        @Html.Raw($"<option value='{doc.Id}' {isSelected}>{doc.FirstName} {doc.LastName}</option>")
+                                                    }
+                                                }
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">Assign</button>
+                                        </form>
+                                    }
+                                    else if (req.Doctor != null)
+                                    {
+                                        <div>
+                                            <i class="bi bi-person-badge text-primary"></i>
+                                            <span class="fw-semibold ms-1">@req.Doctor.FirstName @req.Doctor.LastName</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+
+                                <td>@req.StartDate.ToString("MMM dd, yyyy hh:mm tt")</td>
+                                <td>@req.EndDate.ToString("MMM dd, yyyy hh:mm tt")</td>
+                                <td>@req.Notes</td>
+
+                                <!-- Status -->
+                                <td>
+                                    <span class="status-text @(req.Status.ToLower() switch {
+                                        "pending" => "status-pending",
+                                        "approved" => "status-approved",
+                                        "rejected" => "status-rejected",
+                                        "completed" => "status-completed",
+                                        _ => "status-other"
+                                    })">
+                                        @req.Status
+                                    </span>
+                                </td>
+
+                                <!-- Action Buttons -->
+                                <td>
+                                    <form asp-action="UpdateStatus" asp-controller="ServiceRequest" method="post" class="d-flex gap-2">
+                                        <input type="hidden" name="id" value="@req.RequestId" />
+                                        <select name="status" class="form-select form-select-sm" @(isCompletedOrRejected ? "disabled" : "")>
+                                            <option selected disabled>Change...</option>
+                                            <option value="Approved">Approve</option>
+                                            <option value="Rejected">Reject</option>
+                                            <option value="Completed">Complete</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-outline-success @(isCompletedOrRejected ? "disabled-btn" : "")">Save</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox me-2"></i>No service requests found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

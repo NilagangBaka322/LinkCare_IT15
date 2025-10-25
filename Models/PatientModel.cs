@@ -15,10 +15,13 @@ namespace LinkCare_IT15.Models.PatientModel
 
     public class AppointmentViewModel
     {
+        public int Id { get; set; }
         public string Title { get; set; }
         public DateTime Start { get; set; }
+        public DateTime End { get; set; }
         public string Doctor { get; set; }
     }
+
 
     public class ActivityViewModel
     {
@@ -44,6 +47,8 @@ namespace LinkCare_IT15.Models.PatientModel
     }
     public class BillingViewModel
     {
+        public int BillId { get; set; }               // Billing ID
+        public string DoctorName { get; set; }
         public string PatientName { get; set; }
         public DateTime BillDate { get; set; }
         public List<string> Services { get; set; }
@@ -56,7 +61,7 @@ namespace LinkCare_IT15.Models.PatientModel
     {
         public decimal TotalPaid { get; set; }
         public decimal Pending { get; set; }
-        public decimal Overdue { get; set; }
         public int TotalBills { get; set; }
     }
 }
+    

@@ -155,26 +155,44 @@
         // ======================
         // Reschedule Modal Logic
         // ======================
-        document.querySelectorAll(".schedule-item").forEach(item => {
-            item.addEventListener("click", () => {
-                const patient = item.getAttribute("data-patient");
-                const title = item.getAttribute("data-title");
-                const status = item.getAttribute("data-status");
-                const id = item.getAttribute("data-id"); // make sure you set data-id in Razor
+     
+        document.querySelectorAll(".btn-reschedule").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation(); // prevent parent clicks
 
-                // Fill modal
+                const item = btn.closest(".schedule-item");
+                const status = item?.getAttribute("data-status");
+
+                // 🔒 Only allow modal if appointment is Scheduled
+                if (status && status.toLowerCase() !== "scheduled") {
+                    Swal.fire({
+                        icon: "info",
+                        title: "Not Allowed",
+                        text: "Only scheduled appointments can be rescheduled.",
+                        confirmButtonColor: "#3085d6"
+                    });
+                    return;
+                }
+
+                // ✅ Extract details from data attributes
+                const patient = item?.getAttribute("data-patient");
+                const title = item?.getAttribute("data-title");
+                const id = item?.getAttribute("data-id");
+
+                // Fill modal fields
                 document.getElementById("reschedPatient").textContent = patient;
                 document.getElementById("reschedTitle").textContent = title;
                 document.getElementById("reschedStatus").textContent = status;
                 document.getElementById("reschedDate").value = "";
 
-                // Store appointment id for saving
+                // Store appointment ID for saving
                 document.getElementById("confirmRescheduleBtn").dataset.id = id;
 
                 // Show modal
                 new bootstrap.Modal(document.getElementById("rescheduleModal")).show();
             });
         });
+
 
         document.getElementById("confirmRescheduleBtn").addEventListener("click", function () {
             const apptId = this.dataset.id;
@@ -213,60 +231,75 @@
                 .catch(err => Swal.fire("❌ Error", err.message, "error"));
         });
         // Cancel schedule button
-        document.getElementById("cancelScheduleBtn").addEventListener("click", function () {
+        // ✅ Fixed cancel button (final version)
+        document.getElementById("cancelScheduleBtn").addEventListener("click", async function () {
             const apptId = document.getElementById("confirmRescheduleBtn").dataset.id;
+            if (!apptId) return;
 
-            Swal.fire({
-                title: "Are you sure?",
-                text: "This appointment will be cancelled.",
+            const confirm = await Swal.fire({
+                title: "Cancel this appointment?",
+                text: "This action cannot be undone.",
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Yes, cancel it",
                 cancelButtonText: "No, keep it"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch(`/Doctor/CancelAppointment/${apptId}`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
-                    })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                const item = document.querySelector(`.schedule-item[data-id='${apptId}']`);
-
-                                if (item) {
-                                    const badge = item.querySelector(".badge");
-                                    badge.textContent = "cancelled";
-                                    badge.className = "badge rounded-pill bg-danger-subtle text-danger align-self-center";
-
-                                }
-                                // Move the cancelled item to the bottom of today's schedule list
-                                const todayList = document.getElementById("todayScheduleList"); // make sure your today's schedule container has this ID
-                                if (todayList) {
-                                    todayList.appendChild(item); // moves it to the end
-                                }
-                            
-
-                                const event = window.doctorCalendar.getEventById(apptId);
-                                if (event) {
-                                    event.remove();
-                                }
-
-                                const modal = bootstrap.Modal.getInstance(document.getElementById("rescheduleModal"));
-                                modal.hide();
-
-                                Swal.fire("Cancelled!", "Appointment has been cancelled.", "success");
-                            } else {
-                                Swal.fire("Error", data.message || "Failed to cancel appointment.", "error");
-                            }
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            Swal.fire("Error", "Something went wrong.", "error");
-                        });
-                }
             });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const response = await fetch(`/Doctor/CancelAppointment/${apptId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    Swal.fire("Cancelled!", "The appointment was successfully cancelled.", "success")
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire("Error", data.message || "Unable to cancel appointment.", "error");
+                }
+            } catch (err) {
+                Swal.fire("Error", "Server connection failed.", "error");
+            }
         });
+
+        // ======================
+        // Appointment Box Search Filter
+        // ======================
+        const searchInput = document.getElementById("appointmentSearch");
+
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                const query = searchInput.value.trim().toLowerCase();
+                const scheduleContainer = document.getElementById("schedule-scrollable");
+
+                if (!scheduleContainer) return;
+
+                const scheduleItems = scheduleContainer.querySelectorAll(".schedule-item");
+
+                scheduleItems.forEach(item => {
+                    const patient = (item.dataset.patient || "").toLowerCase();
+                    const title = (item.dataset.title || "").toLowerCase();
+
+                    // Show if either patient name or title matches query
+                    if (patient.includes(query) || title.includes(query)) {
+                        item.style.display = ""; // show
+                    } else {
+                        item.style.display = "none"; // hide
+                    }
+                });
+            });
+        }
+
+
+
+
+
+        
+
+
+
     });

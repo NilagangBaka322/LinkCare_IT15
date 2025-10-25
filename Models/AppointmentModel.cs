@@ -53,6 +53,16 @@ namespace LinkCare_IT15.Models
         public bool IsArchived { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
+
+
+        //Service and Request Linkage
+        [ForeignKey("Service")]
+        public int? ServiceId { get; set; }
+        public Service? Service { get; set; }
+        public int? RequestId { get; set; }
+
+        [ForeignKey("RequestId")]
+        public ServiceRequest? ServiceRequest { get; set; }
     }
 
     // =======================

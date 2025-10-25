@@ -1,0 +1,996 @@
+﻿@using System.Security.Claims
+@model LinkCare_IT15.Models.AdminModel.AdminInventoryModel
+@{
+    ViewBag.Title = "Inventory Management · Link Care";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .online-appointments-style .dashboard-header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.online-appointments-style .dashboard-header h4 {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.online-appointments-style .dashboard-header .small {
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+.online-appointments-style .btn-add-item {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #4facfe;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.online-appointments-style .btn-add-item:hover {
+    background-color: white;
+    color: #007bff;
+}
+
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="container-fluid mt-4 online-appointments-style px-0">
+        <!-- Full-width Gradient Header -->
+        <div class="dashboard-header d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h4 class="mb-0 fw-bold">Inventory Management</h4>
+                <div class="small">Manage and maintain all inventory items in the clinic</div>
+            </div>
+            <button class="btn btn-add-item" data-bs-toggle="modal" data-bs-target="#addInventoryModal">
+                <i class="bi bi-plus-circle"></i> New Item
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="inventoryTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#equipments" type="button" role="tab">Equipments</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#consumables" type="button" role="tab">Consumables</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#batches" type="button" role="tab">Batches</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Equipment Table -->
+        <div class="tab-pane fade show active" id="equipments">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                        <th>Acquired</th>
+                        <th>Dispose</th>
+                        <th>LastMaint.</th>
+                        <th>NextMaint.</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var eq in Model.Equipments)
+                    {
+                        <tr>
+                            <td>
+                                @if (eq.ImageData != null)
+                                {
+                                    var base64 = Convert.ToBase64String(eq.ImageData);
+                                    <img src="data:image/png;base64,@base64" style="max-height:80px; width:60px;" class="img-thumbnail" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No Image</span>
+                                }
+                            </td>
+                            <td>@eq.EquipmentName</td>
+                            <td>@eq.Category</td>
+                            <td>@eq.Quantity</td>
+                            <td>@eq.PurchaseCost</td>
+                            <td>@eq.Status</td>
+                            <td>@eq.AcquiredDate.ToString("yyyy-MM-dd")</td>
+                            <td>@eq.DisposeDate?.ToString("yyyy-MM-dd")</td>
+                            <td>@eq.LastMaintenanceDate?.ToString("yyyy-MM-dd")</td>
+                            <td>@eq.NextMaintenanceDate?.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                <div class="btn-group" role="group" aria-label="Equipment Actions">
+                                    <button type="button"
+                                            class="btn btn-primary btn-sm d-flex align-items-center"
+                                            data-bs-toggle="modal" data-bs-target="#editEquipmentModal"
+                                            data-equipmentid="@eq.EquipmentId"
+                                            data-name="@eq.EquipmentName"
+                                            data-category="@eq.Category"
+                                            data-quantity="@eq.Quantity"
+                                            data-cost="@eq.PurchaseCost"
+                                            data-status="@eq.Status"
+                                            data-acquired="@eq.AcquiredDate.ToString("yyyy-MM-dd")"
+                                            data-dispose="@eq.DisposeDate?.ToString("yyyy-MM-dd")"
+                                            data-lastmaintenance="@eq.LastMaintenanceDate?.ToString("yyyy-MM-dd")"
+                                            data-nextmaintenance="@eq.NextMaintenanceDate?.ToString("yyyy-MM-dd")"
+                                            aria-label="Edit Equipment">
+                                        <i class="bi bi-pencil-square me-1"></i> Edit
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-info btn-sm d-flex align-items-center"
+                                            data-bs-toggle="modal" data-bs-target="#maintenanceLogsModal"
+                                            data-equipmentid="@eq.EquipmentId"
+                                            data-equipmentname="@eq.EquipmentName"
+                                            aria-label="View Maintenance Logs">
+                                        <i class="bi bi-tools me-1"></i> Logs
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm d-flex align-items-center"
+                                            data-bs-toggle="modal" data-bs-target="#archiveConfirmModal"
+                                            data-equipmentid="@eq.EquipmentId"
+                                            data-equipmentname="@eq.EquipmentName"
+                                            aria-label="Archive Equipment">
+                                        <i class="bi bi-archive me-1"></i> Archive
+                                    </button>
+
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="consumables">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-sm align-middle m-0">
+                    <thead class="table-success">
+                        <tr>
+                            <th style="width:100px;">Image</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Unit Cost</th>
+                            <th>Status</th>
+                            <th style="width:300px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in Model.Consumables)
+                        {
+                            <tr>
+                                <td class="p-1 text-center">
+                                    @if (c.ImageData != null)
+                                    {
+                                        var base64 = Convert.ToBase64String(c.ImageData);
+                                        <img src="data:image/png;base64,@base64" class="img-thumbnail" style="max-height:80px; width:60px; object-fit:cover;" />
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">No Image</span>
+                                    }
+                                </td>
+                                <td class="p-1">@c.ConsumableName</td>
+                                <td class="p-1">@c.Category</td>
+                                <td class="p-1">@c.UnitCost</td>
+                                <td class="p-1">@c.Status</td>
+                                <td class="p-1 text-center">
+                                    <div class="d-flex justify-content-center gap-1 flex-wrap">
+                                        <button type="button" class="btn btn-primary btn-sm d-flex align-items-center"
+                                                data-bs-toggle="modal" data-bs-target="#editConsumableModal"
+                                                data-consumableid="@c.ConsumableId"
+                                                data-name="@c.ConsumableName"
+                                                data-category="@c.Category"
+                                                data-cost="@c.UnitCost"
+                                                data-status="@c.Status"
+                                                data-bs-toggle="tooltip"
+                                                title="Edit Consumable">
+                                            <i class="bi bi-pencil-square me-1"></i> Edit
+                                        </button>
+
+                                        <button type="button" class="btn btn-success btn-sm d-flex align-items-center"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#addBatchModal"
+                                                data-consumableid="@c.ConsumableId"
+                                                data-consumablename="@c.ConsumableName"
+                                                data-batchnumber="@ViewBag.BatchNumber"
+                                                data-bs-toggle="tooltip"
+                                                title="Add Batch">
+                                            <i class="bi bi-plus-circle me-1"></i> Add
+                                        </button>
+
+                                        <button type="button" class="btn btn-danger btn-sm d-flex align-items-center"
+                                                data-bs-toggle="modal" data-bs-target="#archiveConsumableModal"
+                                                data-consumableid="@c.ConsumableId"
+                                                data-consumablename="@c.ConsumableName"
+                                                data-bs-toggle="tooltip"
+                                                title="Archive Consumable">
+                                            <i class="bi bi-archive me-1"></i> Archive
+                                        </button>
+                                    </div>
+                                </td>
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <!-- Batches Table -->
+
+        <div class="tab-pane fade" id="batches" role="tabpanel" aria-labelledby="batches-tab">
+            <!-- Header with title and refresh button -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold">Consumable Batches</h5>
+                <button id="refreshBatchesBtn" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table id="tblBatches" class="table table-striped align-middle">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Batch Number</th>
+                            <th>Consumable</th>
+                            <th>Quantity</th>
+                            <th>Unit Cost</th>
+                            <th>Date Received</th>
+                            <th>Expiration Date</th>
+                            <th>Added By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">Loading batches...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<!-- ========================================================= -->
+<!-- ✅ MAINTENANCE LOGS MODAL -->
+<!-- ========================================================= -->
+<div class="modal fade" id="maintenanceLogsModal" tabindex="-1" aria-labelledby="maintenanceLogsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="maintenanceLogsModalLabel">
+                    Maintenance Logs - <span id="maintenanceEquipmentName"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <!-- ✅ Alert -->
+                <div id="maintenanceAlert" class="alert d-none"></div>
+
+                <!-- ✅ Add Maintenance Form -->
+                <form id="addMaintenanceForm" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="maintenanceEquipmentId" name="EquipmentId" />
+
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label for="MaintenanceDate" class="form-label">Date</label>
+                            <input type="date" name="MaintenanceDate" id="MaintenanceDate" class="form-control" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="MaintenanceCost" class="form-label">Cost (₱)</label>
+                            <input type="number" step="0.01" name="MaintenanceCost" id="MaintenanceCost" class="form-control" placeholder="e.g. 500" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="Remarks" class="form-label">Remarks</label>
+                            <input type="text" name="Remarks" id="Remarks" class="form-control" placeholder="Describe work done" />
+                        </div>
+                    </div>
+
+                    <div class="mt-3 text-end">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-plus-circle me-1"></i> Add Log
+                        </button>
+                    </div>
+                </form>
+
+                <hr />
+
+                <!-- ✅ Logs Table -->
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="maintenanceLogsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Cost (₱)</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No logs yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Inventory Modal -->
+<div class="modal fade" id="addInventoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Add Inventory Item</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-pills mb-3">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#equipment-form">Equipment</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#consumable-form">Consumable</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Equipment Form -->
+                    <div class="tab-pane fade show active" id="equipment-form">
+                        <form asp-action="Index" method="post" enctype="multipart/form-data">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label>Equipment Name</label>
+                                    <input class="form-control" asp-for="NewEquipment.EquipmentName" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Category</label>
+                                    <input class="form-control" asp-for="NewEquipment.Category" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Quantity</label>
+                                    <input type="number" class="form-control" asp-for="NewEquipment.Quantity" min="1" value="1" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Purchase Cost</label>
+                                    <input type="number" step="0.01" class="form-control" asp-for="NewEquipment.PurchaseCost" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Status</label>
+                                    <input class="form-control" asp-for="NewEquipment.Status" value="Available" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row">
+                                        <div class="col">
+                                            <label>Last Maintenance</label>
+                                            <input type="date" class="form-control" asp-for="NewEquipment.LastMaintenanceDate" />
+                                        </div>
+                                        <div class="col">
+                                            <label>Next Maintenance</label>
+                                            <input type="date" class="form-control" asp-for="NewEquipment.NextMaintenanceDate" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label>Upload Image</label>
+                                    <input type="file" class="form-control" name="EquipmentImageFile" accept="image/*" id="equipmentImageInput" />
+                                    <img id="equipmentImagePreview" class="img-fluid mt-2 d-none" style="max-height:200px;" />
+                                </div>
+                            </div>
+                            <div class="mt-3 text-end">
+                                <button type="submit" class="btn btn-primary">Save Equipment</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Consumable Form -->
+                    <div class="tab-pane fade" id="consumable-form">
+                        <form asp-action="Index" method="post" enctype="multipart/form-data">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label>Consumable Name</label>
+                                    <input class="form-control" asp-for="NewConsumable.ConsumableName" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Category</label>
+                                    <input class="form-control" asp-for="NewConsumable.Category" required />
+                                </div>
+                              
+                                <div class="col-md-6">
+                                    <label>Unit Cost</label>
+                                    <input type="number" step="0.01" class="form-control" asp-for="NewConsumable.UnitCost" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Status</label>
+                                    <input class="form-control" asp-for="NewConsumable.Status" value="Available" />
+                                </div>
+                               
+                                <div class="col-12">
+                                    <label>Upload Image</label>
+                                    <input type="file" class="form-control" name="ConsumableImageFile" accept="image/*" id="consumableImageInput" />
+                                    <img id="consumableImagePreview" class="img-fluid mt-2 d-none" style="max-height:200px;" />
+                                </div>
+                            </div>
+                            <div class="mt-3 text-end">
+                                <button type="submit" class="btn btn-primary">Save Consumable</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Equipment Modal -->
+<div class="modal fade" id="editEquipmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-controller="Equipments" asp-action="Edit" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Edit Equipment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editEquipmentId" name="EquipmentId" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label>Equipment Name</label>
+                            <input class="form-control" id="editName" name="EquipmentName" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label>Category</label>
+                            <input class="form-control" id="editCategory" name="Category" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label>Quantity</label>
+                            <input type="number" class="form-control" id="editQuantity" name="Quantity" min="1" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label>Purchase Cost</label>
+                            <input type="number" step="0.01" class="form-control" id="editCost" name="PurchaseCost" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label>Status</label>
+                            <input class="form-control" id="editStatus" name="Status" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label>Acquired Date</label>
+                            <input type="date" class="form-control" id="editAcquired" name="AcquiredDate" />
+                        </div>
+                        <div class="col-md-6">
+                            <label>Dispose Date (optional)</label>
+                            <input type="date" class="form-control" id="editDispose" name="DisposeDate" />
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col">
+                                    <label>Last Maintenance</label>
+                                    <input type="date" class="form-control" id="editLastMaintenance" name="LastMaintenanceDate" />
+                                </div>
+                                <div class="col">
+                                    <label>Next Maintenance</label>
+                                    <input type="date" class="form-control" id="editNextMaintenance" name="NextMaintenanceDate" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label>Upload Image</label>
+                            <input type="file" class="form-control" name="EditEquipmentImageFile" accept="image/*" id="editImageInput" />
+                            <img id="editImagePreview" class="img-fluid mt-2 d-none" style="max-height:200px;" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ==========================================================
+     ADD BATCH MODAL (Batch Number Auto-Generated Server-Side)
+========================================================== -->
+<div class="modal fade" id="addBatchModal" tabindex="-1" aria-labelledby="addBatchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="addBatchModalLabel">
+                    <i class="bi bi-box-seam"></i> Add Consumable Batch
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form id="addBatchForm" asp-area="Admin" asp-controller="Equipments" asp-action="AddBatch" method="post">
+
+                <div class="modal-body">
+                    <input type="hidden" id="ConsumableId" name="ConsumableId" />
+
+                    <div class="row g-3">
+                        <!-- Quantity -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Quantity</label>
+                            <input type="number" id="Quantity" name="Quantity" class="form-control" min="1" required />
+                        </div>
+
+                        <!-- Unit Cost -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Unit Cost (₱)</label>
+                            <input type="number" id="UnitCost" name="UnitCost" class="form-control" min="0" step="0.01" required />
+                        </div>
+
+                        <!-- Date Received -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Date Received</label>
+                            <input type="date" id="DateReceived" name="DateReceived" class="form-control" required />
+                        </div>
+
+                        <!-- Shelf Life -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Shelf Life (Days)</label>
+                            <input type="number" id="ShelfLifeDays" name="ShelfLifeDays" class="form-control" min="0" />
+                        </div>
+
+                        <!-- Expiration Date -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Expiration Date</label>
+                            <input type="date" id="ExpirationDate" name="ExpirationDate" class="form-control" readonly />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Batch
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Consumable Modal -->
+
+<div class="modal fade" id="editConsumableModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-controller="Equipments" asp-action="EditConsumable" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Edit Consumable</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editConsumableId" name="ConsumableId" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label>Name</label>
+                            <input type="text" class="form-control" id="editConsumableName" name="ConsumableName" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label>Category</label>
+                            <input type="text" class="form-control" id="editConsumableCategory" name="Category" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label>Unit Cost</label>
+                            <input type="number" step="0.01" class="form-control" id="editConsumableCost" name="UnitCost" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label>Status</label>
+                            <input type="text" class="form-control" id="editConsumableStatus" name="Status" required />
+                        </div>
+                        <div class="col-12">
+                            <label>Upload Image</label>
+                            <input type="file" class="form-control" name="EditConsumableImageFile" accept="image/*" id="editConsumableImageInput" />
+                            <img id="editConsumableImagePreview" class="img-fluid mt-2 d-none" style="max-height:200px;" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Archive Confirmation Modal -->
+<div class="modal fade" id="archiveConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="archiveForm" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">Confirm Archive</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to archive <strong id="equipmentNameText"></strong>?</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmArchiveCheck" />
+                        <label class="form-check-label">Yes, I want to archive this item.</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="archiveSubmitBtn" class="btn btn-warning" disabled>Archive</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="archiveConsumableModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="archiveConsumableForm" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">Confirm Archive</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to archive <strong id="consumableNameText"></strong>?</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmArchiveConsumableCheck" />
+                        <label class="form-check-label">Yes, I want to archive this item.</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="archiveConsumableSubmitBtn" class="btn btn-warning" disabled>Archive</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            // ======================================================
+            // EDIT EQUIPMENT MODAL
+            // ======================================================
+            const editModal = document.getElementById('editEquipmentModal');
+            if (editModal) {
+                editModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    document.getElementById('editEquipmentId').value = button.getAttribute('data-equipmentid');
+                    document.getElementById('editName').value = button.getAttribute('data-name');
+                    document.getElementById('editCategory').value = button.getAttribute('data-category');
+                    document.getElementById('editQuantity').value = button.getAttribute('data-quantity');
+                    document.getElementById('editCost').value = button.getAttribute('data-cost');
+                    document.getElementById('editStatus').value = button.getAttribute('data-status');
+                    document.getElementById('editAcquired').value = button.getAttribute('data-acquired');
+                    document.getElementById('editDispose').value = button.getAttribute('data-dispose');
+                    document.getElementById('editLastMaintenance').value = button.getAttribute('data-lastmaintenance');
+                    document.getElementById('editNextMaintenance').value = button.getAttribute('data-nextmaintenance');
+                });
+            }
+
+            // ======================================================
+            // ARCHIVE EQUIPMENT MODAL
+            // ======================================================
+            const archiveModal = document.getElementById('archiveConfirmModal');
+            if (archiveModal) {
+                const equipmentNameText = document.getElementById('equipmentNameText');
+                const confirmCheck = document.getElementById('confirmArchiveCheck');
+                const archiveSubmitBtn = document.getElementById('archiveSubmitBtn');
+                const archiveForm = document.getElementById('archiveForm');
+
+                archiveModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const equipmentId = button.getAttribute('data-equipmentid');
+                    const equipmentName = button.getAttribute('data-equipmentname');
+                    equipmentNameText.textContent = equipmentName;
+                    archiveForm.action = '/Admin/Equipments/Archive/' + equipmentId;
+                    confirmCheck.checked = false;
+                    archiveSubmitBtn.disabled = true;
+                });
+
+                confirmCheck.addEventListener('change', () => {
+                    archiveSubmitBtn.disabled = !confirmCheck.checked;
+                });
+            }
+
+            // ======================================================
+            // ARCHIVE CONSUMABLE MODAL
+            // ======================================================
+            const archiveConsumableModal = document.getElementById('archiveConsumableModal');
+            if (archiveConsumableModal) {
+                const consumableNameText = document.getElementById('consumableNameText');
+                const confirmConsumableCheck = document.getElementById('confirmArchiveConsumableCheck');
+                const archiveConsumableSubmitBtn = document.getElementById('archiveConsumableSubmitBtn');
+                const archiveConsumableForm = document.getElementById('archiveConsumableForm');
+
+                archiveConsumableModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const consumableId = button.getAttribute('data-consumableid');
+                    const consumableName = button.getAttribute('data-consumablename');
+
+                    consumableNameText.textContent = consumableName;
+                    archiveConsumableForm.action = '/Admin/Equipments/ArchiveConsumables/' + consumableId;
+                    confirmConsumableCheck.checked = false;
+                    archiveConsumableSubmitBtn.disabled = true;
+                });
+
+                confirmConsumableCheck.addEventListener('change', () => {
+                    archiveConsumableSubmitBtn.disabled = !confirmConsumableCheck.checked;
+                });
+            }
+
+            // ======================================================
+            // IMAGE PREVIEW (ADD EQUIPMENT)
+            // ======================================================
+            const eqInput = document.getElementById("equipmentImageInput");
+            const eqPreview = document.getElementById("equipmentImagePreview");
+            if (eqInput) {
+                eqInput.addEventListener("change", e => {
+                    if (e.target.files && e.target.files[0]) {
+                        eqPreview.src = URL.createObjectURL(e.target.files[0]);
+                        eqPreview.classList.remove("d-none");
+                    }
+                });
+            }
+
+            // ======================================================
+            // IMAGE PREVIEW (EDIT EQUIPMENT)
+            // ======================================================
+            const editInput = document.getElementById("editImageInput");
+            const editPreview = document.getElementById("editImagePreview");
+            if (editInput) {
+                editInput.addEventListener("change", e => {
+                    if (e.target.files && e.target.files[0]) {
+                        editPreview.src = URL.createObjectURL(e.target.files[0]);
+                        editPreview.classList.remove("d-none");
+                    }
+                });
+            }
+
+            // ======================================================
+            // ADD BATCH MODAL
+            // ======================================================
+            const addBatchModal = document.getElementById('addBatchModal');
+            const consumableSelect = document.getElementById('ConsumableId');
+
+            if (addBatchModal) {
+                addBatchModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const consumableId = button.getAttribute('data-consumableid');
+                    const consumableName = button.getAttribute('data-consumablename');
+
+                    if (consumableSelect) {
+                        consumableSelect.value = consumableId;
+                        for (let option of consumableSelect.options) {
+                            option.disabled = option.value !== consumableId;
+                        }
+                    }
+                });
+
+                addBatchModal.addEventListener('hidden.bs.modal', function () {
+                    for (let option of consumableSelect.options) {
+                        option.disabled = false;
+                    }
+                    document.getElementById("addBatchForm").reset();
+                });
+            }
+
+            // ======================================================
+            // Shelf life → Expiration Date (auto-calc)
+            // ======================================================
+            const shelfLifeInput = document.getElementById("ShelfLifeDays");
+            const expirationInput = document.getElementById("ExpirationDate");
+
+            if (shelfLifeInput && expirationInput) {
+                shelfLifeInput.addEventListener("input", function () {
+                    const shelfLife = parseInt(shelfLifeInput.value) || 0;
+                    const today = new Date();
+                    today.setDate(today.getDate() + shelfLife);
+                    expirationInput.value = today.toISOString().split('T')[0];
+                });
+            }
+
+            // ======================================================
+            // SUBMIT ADD BATCH FORM (AJAX)
+            // ======================================================
+            const addBatchForm = document.getElementById("addBatchForm");
+            if (addBatchForm) {
+                addBatchForm.addEventListener("submit", async function (e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(addBatchForm);
+                    try {
+                        const response = await fetch("/Admin/Equipments/AddBatch", {
+                            method: "POST",
+                            body: formData
+                        });
+
+                        const result = await response.json();
+                        if (result.success) {
+                            alert(result.message);
+                            const modalInstance = bootstrap.Modal.getInstance(addBatchModal);
+                            modalInstance.hide();
+
+                            // 🔄 Reload batches automatically
+                            document.dispatchEvent(new Event("batchAdded"));
+                        } else {
+                            alert("Failed to add batch: " + (result.message || "Unknown error"));
+                        }
+                    } catch (error) {
+                        console.error("Error:", error);
+                        alert("An unexpected error occurred.");
+                    }
+                });
+            }
+
+            // ======================================================
+            // LOAD BATCHES TABLE
+            // ======================================================
+            async function loadBatches() {
+                const tbody = document.querySelector("#tblBatches tbody");
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Loading...</td></tr>`;
+
+                try {
+                    const response = await fetch("/Admin/Equipments/GetBatches");
+                    const result = await response.json();
+
+                    if (result.success && result.data.length > 0) {
+                        tbody.innerHTML = "";
+                        result.data.forEach(b => {
+                            const row = `
+                                <tr>
+                                    <td>${b.batchNumber}</td>
+                                    <td>${b.consumableName}</td>
+                                    <td>${b.quantity}</td>
+                                    <td>${b.unitCost.toFixed(2)}</td>
+                                    <td>${b.dateReceived}</td>
+                                    <td>${b.expirationDate}</td>
+                                    <td>${b.addedBy}</td>
+                                </tr>`;
+                            tbody.insertAdjacentHTML("beforeend", row);
+                        });
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No batches found.</td></tr>`;
+                    }
+                } catch (error) {
+                    console.error("Error loading batches:", error);
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Error loading data.</td></tr>`;
+                }
+            }
+
+            // Load batches when Batches tab is opened
+            document.getElementById('batches-tab')?.addEventListener('shown.bs.tab', loadBatches);
+
+            // Refresh button
+            document.getElementById('refreshBatchesBtn')?.addEventListener('click', loadBatches);
+
+            // Reload after adding a batch
+            document.addEventListener("batchAdded", loadBatches);
+
+            // ======================================================
+            // MAINTENANCE LOGS MODAL
+            // ======================================================
+            const logsModal = document.getElementById("maintenanceLogsModal");
+            const logsTableBody = document.querySelector("#maintenanceLogsTable tbody");
+            const addForm = document.getElementById("addMaintenanceForm");
+            const alertBox = document.getElementById("maintenanceAlert");
+
+            logsModal?.addEventListener("show.bs.modal", async (event) => {
+                const button = event.relatedTarget;
+                const equipmentId = button.getAttribute("data-equipmentid");
+                const equipmentName = button.getAttribute("data-equipmentname");
+
+                document.getElementById("maintenanceEquipmentId").value = equipmentId;
+                document.getElementById("maintenanceEquipmentName").textContent = equipmentName;
+
+                logsTableBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">Loading...</td></tr>`;
+
+                try {
+                    const response = await fetch(`/Admin/Equipments/GetMaintenanceLogs/${equipmentId}`);
+                    if (!response.ok) throw new Error("Failed to load");
+                    const logs = await response.json();
+                    if (!logs || logs.length === 0) {
+                        logsTableBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">No logs found.</td></tr>`;
+                    } else {
+                        logsTableBody.innerHTML = "";
+                        logs.forEach(log => {
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                                <td>${new Date(log.maintenanceDate).toLocaleDateString()}</td>
+                                <td>₱${parseFloat(log.maintenanceCost).toFixed(2)}</td>
+                                <td>${log.remarks || ""}</td>`;
+                            logsTableBody.appendChild(row);
+                        });
+                    }
+                } catch (err) {
+                    logsTableBody.innerHTML = `<tr><td colspan="3" class="text-center text-danger">Failed to load logs.</td></tr>`;
+                }
+            });
+
+            // ======================================================
+            // ADD MAINTENANCE LOG (AJAX POST)
+            // ======================================================
+            addForm?.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(addForm);
+                formData.append("EquipmentId", document.getElementById("maintenanceEquipmentId").value);
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const response = await fetch("/Admin/Equipments/AddMaintenanceLog", {
+                        method: "POST",
+                        headers: { "RequestVerificationToken": token },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    alertBox.classList.remove("d-none", "alert-success", "alert-danger");
+                    if (result.success) {
+                        alertBox.classList.add("alert-success");
+                        alertBox.textContent = result.message;
+
+                        const newRow = document.createElement("tr");
+                        newRow.innerHTML = `
+                            <td>${new Date(result.data.maintenanceDate).toLocaleDateString()}</td>
+                            <td>₱${parseFloat(result.data.maintenanceCost).toFixed(2)}</td>
+                            <td>${result.data.remarks || ""}</td>`;
+                        logsTableBody.prepend(newRow);
+                        addForm.reset();
+                    } else {
+                        alertBox.classList.add("alert-danger");
+                        alertBox.textContent = result.message || "Failed to save log.";
+                    }
+                } catch (err) {
+                    alertBox.classList.remove("d-none");
+                    alertBox.classList.add("alert-danger");
+                    alertBox.textContent = "An unexpected error occurred while saving.";
+                }
+            });
+
+        });
+    </script>
+}
+

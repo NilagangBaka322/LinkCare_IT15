@@ -104,6 +104,173 @@ namespace LinkCare_IT15.Data.Migrations
                     b.ToTable("Consultations");
                 });
 
+            modelBuilder.Entity("LinkCare_IT15.Models.AdminModel.ConsumableBatch", b =>
+                {
+                    b.Property<int>("BatchId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BatchId"));
+
+                    b.Property<string>("BatchNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ConsumableId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateReceived")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShelfLifeDays")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("BatchId");
+
+                    b.HasIndex("ConsumableId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ConsumableBatches");
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.AdminModel.ConsumableModel", b =>
+                {
+                    b.Property<int>("ConsumableId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsumableId"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ConsumableName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("ImageData")
+                        .HasColumnType("VARBINARY(MAX)");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("ConsumableId");
+
+                    b.ToTable("Consumables", (string)null);
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.AdminModel.EquipmentModel", b =>
+                {
+                    b.Property<int>("EquipmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EquipmentId"));
+
+                    b.Property<DateTime>("AcquiredDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DisposeDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EquipmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("ImageData")
+                        .HasColumnType("VARBINARY(MAX)");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastMaintenanceDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NextMaintenanceDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("PurchaseCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("EquipmentId");
+
+                    b.ToTable("Equipments", (string)null);
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.AdminModel.MaintenanceLog", b =>
+                {
+                    b.Property<int>("MaintenanceLogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaintenanceLogId"));
+
+                    b.Property<int>("EquipmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EquipmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("MaintenanceCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("MaintenanceDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Remarks")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("MaintenanceLogId");
+
+                    b.HasIndex("EquipmentId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MaintenanceLogs");
+                });
+
             modelBuilder.Entity("LinkCare_IT15.Models.Appointment", b =>
                 {
                     b.Property<int>("Id")
@@ -131,6 +298,12 @@ namespace LinkCare_IT15.Data.Migrations
                     b.Property<string>("PatientId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("RequestId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ServiceId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -152,6 +325,10 @@ namespace LinkCare_IT15.Data.Migrations
                     b.HasIndex("DoctorId");
 
                     b.HasIndex("PatientId");
+
+                    b.HasIndex("RequestId");
+
+                    b.HasIndex("ServiceId");
 
                     b.ToTable("Appointments");
                 });
@@ -312,6 +489,89 @@ namespace LinkCare_IT15.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Doctors");
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.Service", b =>
+                {
+                    b.Property<int>("ServiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ServiceId"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImagePath")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ServiceName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("ServiceId");
+
+                    b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.ServiceRequest", b =>
+                {
+                    b.Property<int>("RequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RequestId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DoctorId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PatientId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("RequestId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("ServiceRequests");
                 });
 
             modelBuilder.Entity("LinkCare_IT15.Models.Transaction", b =>
@@ -513,6 +773,40 @@ namespace LinkCare_IT15.Data.Migrations
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("LinkCare_IT15.Models.AdminModel.ConsumableBatch", b =>
+                {
+                    b.HasOne("LinkCare_IT15.Models.AdminModel.ConsumableModel", "Consumable")
+                        .WithMany("Batches")
+                        .HasForeignKey("ConsumableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Consumable");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.AdminModel.MaintenanceLog", b =>
+                {
+                    b.HasOne("LinkCare_IT15.Models.AdminModel.EquipmentModel", "Equipment")
+                        .WithMany("MaintenanceLogs")
+                        .HasForeignKey("EquipmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Equipment");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("LinkCare_IT15.Models.Appointment", b =>
                 {
                     b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", "Doctor")
@@ -526,9 +820,21 @@ namespace LinkCare_IT15.Data.Migrations
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("LinkCare_IT15.Models.ServiceRequest", "ServiceRequest")
+                        .WithMany()
+                        .HasForeignKey("RequestId");
+
+                    b.HasOne("LinkCare_IT15.Models.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId");
+
                     b.Navigation("Doctor");
 
                     b.Navigation("Patient");
+
+                    b.Navigation("Service");
+
+                    b.Navigation("ServiceRequest");
                 });
 
             modelBuilder.Entity("LinkCare_IT15.Models.Billing", b =>
@@ -555,6 +861,29 @@ namespace LinkCare_IT15.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.ServiceRequest", b =>
+                {
+                    b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId");
+
+                    b.HasOne("LinkCare_IT15.Models.Entities.ApplicationUser", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId");
+
+                    b.HasOne("LinkCare_IT15.Models.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("Service");
                 });
 
             modelBuilder.Entity("LinkCare_IT15.Models.Transaction", b =>
@@ -617,6 +946,16 @@ namespace LinkCare_IT15.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.AdminModel.ConsumableModel", b =>
+                {
+                    b.Navigation("Batches");
+                });
+
+            modelBuilder.Entity("LinkCare_IT15.Models.AdminModel.EquipmentModel", b =>
+                {
+                    b.Navigation("MaintenanceLogs");
                 });
 
             modelBuilder.Entity("LinkCare_IT15.Models.Billing", b =>

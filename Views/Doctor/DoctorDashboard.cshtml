@@ -1,89 +1,284 @@
 ﻿@model LinkCare_IT15.Models.DoctorModel.DoctorDashboardModel
-
 @{
-    ViewBag.Title = "Doctor Dashboard · Link Care";
+    ViewData["Title"] = "Doctor Dashboard";
     Layout = "~/Views/Shared/_DoctorLayout.cshtml";
 }
 
-@if (User.IsInRole("Doctor"))
-{
-    <a asp-controller="Doctor" asp-action="DoctorDashboard">Doctor Dashboard</a>
-}
+<style>
+    /* === Doctor Dashboard Styling === */
+    .dashboard-header {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 1rem;
+        margin-top: 0.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        text-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Keep container spacing consistent */
+    .container-fluid {
+        padding-top: 0.5rem !important;
+    }
+
+    .dashboard-header h4 {
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .lc-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: none;
+    }
+
+    .lc-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .lc-card-title {
+        font-weight: 600;
+        color: #374151; /* slate gray instead of black */
+        font-size: 0.95rem;
+        letter-spacing: 0.2px;
+        text-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.15);
+    }
+
+    /* === KPI Cards === */
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        text-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.25);
+    }
+
+    .metric-value.appointments {
+        color: #2563eb; /* Clinic blue */
+    }
+
+    .metric-value.pending {
+        color: #f1b700;
+    }
+
+    .metric-value.patients {
+        background: linear-gradient(90deg, #10b981, #22d3ee);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .small-muted {
+        color: #6b7280; /* softer gray */
+        font-size: 0.85rem;
+    }
+
+    /* === Status Text (Colored Text with Readability Shadow) === */
+    .status-text {
+        font-weight: 600;
+        text-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.25);
+    }
+
+    .status-text.text-success {
+        color: #16a34a !important; /* modern green */
+    }
+
+    .status-text.text-warning {
+        color: #eab308 !important; /* warm yellow */
+    }
+
+    .status-text.text-danger {
+        color: #dc2626 !important; /* modern red */
+    }
+
+    /* === Activity Box Scroll Styling === */
+    .activity-box {
+        max-height: 350px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #007bff #f1f1f1;
+    }
+
+    .activity-box::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .activity-box::-webkit-scrollbar-thumb {
+        background-color: #007bff;
+        border-radius: 10px;
+    }
+
+    .activity-box::-webkit-scrollbar-track {
+        background-color: #f1f1f1;
+    }
+
+    /* === Hover Effect === */
+    .hover-card:hover {
+        cursor: pointer;
+        transform: translateY(-4px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* === Consistent Section Spacing === */
+    .dashboard-section {
+        margin-top: 1.5rem;
+    }
+
+    /* === Responsive Design Tweaks === */
+    @@media (max-width: 992px) {
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .dashboard-header i {
+            margin-top: 1rem;
+            font-size: 2rem !important;
+        }
+
+        .metric-value {
+            font-size: 1.6rem;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .dashboard-header {
+            padding: 1rem 1.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .lc-card {
+            padding: 1.25rem !important;
+        }
+
+        .metric-value {
+            font-size: 1.4rem;
+        }
+    }
+</style>
 
 <div class="container-fluid">
-    <div class="mb-2">
-        <h4 class="fw-bold">Welcome Back, Dr. @Model.DoctorName</h4>
-        <div class="text-muted small">Here’s an overview of your clinic today</div>
+
+    <!-- Header -->
+    <div class="dashboard-header d-flex justify-content-between align-items-center">
+        <div>
+            <h4>
+                Welcome, Dr. @(Model.Doctor != null
+                ? $"{Model.Doctor.FirstName} {Model.Doctor.LastName}"
+                : "Doctor") 👋
+            </h4>
+            <div class="small">Here’s your daily overview and upcoming consultations</div>
+        </div>
+        <div><i class="bi bi-person-heart fs-1 opacity-75"></i></div>
     </div>
 
-    <!-- Top 3 cards -->
-    <div class="row g-3">
-        <div class="col-12 col-lg-4">
-            <div class="lc-card p-3 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="lc-card-title">Today’s Appointments</div>
-                    <i class="bi bi-calendar3"></i>
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-0 dashboard-section">
+        <div class="col-12 col-sm-6 col-lg-4">
+            <a href="@Url.Action("DoctorAppointments", "Doctor")?filter=today" class="text-decoration-none">
+                <div class="lc-card p-4 text-center h-100 hover-card">
+                    <i class="bi bi-calendar-check text-primary fs-3 mb-2"></i>
+                    <div class="metric-value appointments">@Model.TodayAppointments</div>
+                    <div class="small-muted">Today's Appointments</div>
                 </div>
-                <div class="fs-4 fw-bold">@Model.TodayAppointments</div>
-                <div class="small-muted">Scheduled for today</div>
-            </div>
+            </a>
         </div>
-        <div class="col-12 col-lg-4">
-            <div class="lc-card p-3 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="lc-card-title">Pending Consultations</div>
-                    <i class="bi bi-clipboard2-pulse"></i>
+
+        <div class="col-12 col-sm-6 col-lg-4">
+            <a href="@Url.Action("DoctorAppointments", "Doctor")?filter=pending" class="text-decoration-none">
+                <div class="lc-card p-4 text-center h-100 hover-card">
+                    <i class="bi bi-hourglass-split text-warning fs-3 mb-2"></i>
+                    <div class="metric-value pending">@Model.PendingConsultations</div>
+                    <div class="small-muted">Pending Consultations</div>
                 </div>
-                <div class="fs-4 fw-bold">@Model.PendingConsultations</div>
-                <div class="small-muted">Awaiting consultation</div>
-            </div>
+            </a>
         </div>
-        <div class="col-12 col-lg-4">
-            <div class="lc-card p-3 h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="lc-card-title">Patients Under Care</div>
-                    <i class="bi bi-people"></i>
+
+        <div class="col-12 col-sm-6 col-lg-4">
+            <a href="@Url.Action("DoctorPatients", "Doctor")" class="text-decoration-none">
+                <div class="lc-card p-4 text-center h-100 hover-card">
+                    <i class="bi bi-people text-success fs-3 mb-2"></i>
+                    <div class="metric-value patients">@Model.TotalPatients</div>
+                    <div class="small-muted">Patients Under Care</div>
                 </div>
-                <div class="fs-4 fw-bold">@Model.TotalPatients</div>
-                <div class="small-muted">Active patients assigned</div>
-            </div>
+            </a>
         </div>
     </div>
 
-    <!-- Bottom row -->
-    @* <div class="row g-3 mt-1"> *@
-    @*     <div class="col-12 col-lg-8"> *@
-    @*         <div class="lc-card p-3"> *@
-    @*             <div class="lc-card-title mb-2"> *@
-    @*                 <i class="bi bi-clock-history me-2"></i> Upcoming Appointments *@
-    @*             </div> *@
-    @*             <ul class="list-plain"> *@
-    @*                 @foreach (var appt in Model.UpcomingAppointments) *@
-    @*                 { *@
-                       
-    @*                 } *@
-    @*             </ul> *@
-    @*         </div> *@
-    @*     </div> *@
-
-        <div class="col-12 col-lg-4">
-            <div class="lc-card p-3 h-100">
-                <div class="lc-card-title mb-2">
-                    <i class="bi bi-activity me-2"></i> Recent Activity
+    <!-- Recent Activity & Upcoming Appointments -->
+    <div class="row g-3 dashboard-section">
+        <!-- Recent Activity -->
+        <div class="col-12 col-lg-8">
+            <div class="lc-card p-4 h-100">
+                <div class="lc-card-title mb-3 d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-activity text-primary me-2"></i> Recent Activity</span>
+                    <i class="bi bi-arrow-repeat text-muted"></i>
                 </div>
-                <ul class="timeline ps-0">
-                    @foreach (var a in Model.RecentActivity)
+
+                <div class="activity-box">
+                    @if (Model.RecentActivity != null && Model.RecentActivity.Any())
                     {
-                        <li>
-                            <span class="dot"></span>
-                            <div>
-                                <div class="fw-semibold">@a.Label</div>
-                                <div class="small-muted">@a.User · @((int)a.Ago.TotalHours) hours ago</div>
-                            </div>
-                        </li>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var a in Model.RecentActivity)
+                            {
+                                <li class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-semibold text-dark" style="color:#374151; text-shadow:0 1px 1.5px rgba(0,0,0,0.25);">@a.Label</div>
+                                        <div class="small text-muted">@a.User • @((int)a.Ago.TotalHours)h ago</div>
+                                    </div>
+                                    <i class="bi bi-check-circle text-success"></i>
+                                </li>
+                                <hr class="my-1 text-muted opacity-25" />
+                            }
+                        </ul>
                     }
-                </ul>
+                    else
+                    {
+                        <div class="text-muted fst-italic small">No recent activity today.</div>
+                    }
+                </div>
             </div>
         </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="lc-card p-4 h-100">
+                <div class="lc-card-title mb-3 d-flex align-items-center">
+                    <i class="bi bi-clock-history text-primary me-2"></i>
+                    <span>Upcoming Appointments</span>
+                </div>
+
+                @if (Model.UpcomingAppointments != null && Model.UpcomingAppointments.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var appt in Model.UpcomingAppointments)
+                        {
+                            <li class="list-group-item px-0 py-3 border-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <!-- Left side: patient name and details -->
+                                    <div>
+                                        <div class="fw-semibold" style="color:#2d3748; text-shadow:0 1px 1px rgba(0,0,0,0.15);">
+                                            @appt.PatientName
+                                        </div>
+                                        <div class="small-muted">@appt.Time — @appt.Title</div>
+                                    </div>
+
+                                    <!-- Right side: status -->
+                                    <div class="text-end">
+                                        <span class="badge bg-warning text">@appt.Status</span>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-muted fst-italic small">No pending consultations today.</div>
+                }
+            </div>
+        </div>
+
     </div>
 </div>
